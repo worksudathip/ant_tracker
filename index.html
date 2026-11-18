@@ -2,16 +2,14 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<!-- ================= ตั้งค่า Supabase (แก้ 2 บรรทัดนี้) =================
-     เอาค่าจาก Supabase → Project Settings → Data API (Project URL) และ API Keys (Publishable key)
-     ห้ามใส่ Secret key / service_role key -->
+<!-- ================= ตั้งค่า Supabase ================= -->
 <script>
 window.AWN_CONFIG = {
   SUPABASE_URL: "https://xnzfbegojbgsvgguzkhp.supabase.co",
   SUPABASE_KEY: "sb_publishable_9Twvo-RW9EjdyLVEaKPrAQ_ltbVefXo"
 };
 </script>
-<!-- ===================================================================== -->
+<!-- ==================================================== -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
 <title>ระบบติดตาม ANT บนเสา Tower (AWN)</title>
@@ -80,7 +78,7 @@ tr.total td{font-weight:600;border-top:1px solid var(--line-2)}
 .tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
 .tbl-wrap.tall{max-height:62vh}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
-input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],select,textarea{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:7px 10px;min-width:0}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],input[type=date],select,textarea{background:var(--surface);border:1px solid var(--line-2);border-radius:8px;padding:7px 10px;min-width:0}
 input:focus,select:focus,textarea:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:transparent}
 textarea{width:100%;min-height:140px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
 .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:8px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;font-weight:500}
@@ -140,7 +138,7 @@ textarea{width:100%;min-height:140px;font-family:ui-monospace,Menlo,monospace;fo
 body.ro .wr{display:none!important}
 @media (max-width:700px){
   html,body{font-size:14px}
-  input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],select,textarea{font-size:16px}
+  input[type=text],input[type=email],input[type=password],input[type=number],input[type=search],input[type=date],select,textarea{font-size:16px}
   .top-inner{padding:10px 12px 0;gap:6px 8px}
   .brand{flex-basis:100%}
   .brand b{font-size:15px}.brand span{display:none}
@@ -190,6 +188,22 @@ body.ro .wr{display:none!important}
 .user-box{display:flex;align-items:center;gap:6px}
 .role-sel{padding:4px 8px}
 @media (max-width:700px){.user-box{margin-left:auto}#userPill{max-width:150px;overflow:hidden;text-overflow:ellipsis}}
+
+/* ---------- v2 ---------- */
+.rb-grid{display:grid;grid-template-columns:minmax(260px,360px) 1fr;gap:18px}
+@media(max-width:800px){.rb-grid{grid-template-columns:1fr}}
+.rb-cols{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:4px 12px;max-height:330px;overflow:auto;padding:8px;border:1px solid var(--line);border-radius:8px}
+.rb-cols label{display:flex;gap:6px;align-items:center;font-size:13px;cursor:pointer}
+.ms{display:flex;flex-wrap:wrap;gap:6px}
+.ms label{display:inline-flex;gap:4px;align-items:center;padding:3px 9px;border:1px solid var(--line-2);border-radius:999px;font-size:12.5px;cursor:pointer}
+.ms input{margin:0}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 14px}
+.items-tbl input,.items-tbl select{padding:4px 6px;font-size:13px}
+.items-tbl input[type=number]{width:56px;text-align:right}
+.money{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+tr.sum td{font-weight:700;border-top:2px solid var(--line-2)}
+.chk-on{color:var(--good);font-weight:700}.chk-off{color:var(--muted)}
+.st-received{background:var(--warn-soft);color:var(--warn)}.st-forwarded{background:var(--accent-soft);color:var(--accent)}.st-verified{background:var(--accent-soft);color:var(--accent)}.st-applied{background:var(--good-soft);color:var(--good)}.st-closed{background:var(--surface-2);color:var(--text-2)}
 </style>
 </head>
 <body>
@@ -211,8 +225,10 @@ body.ro .wr{display:none!important}
   <nav class="tabs" id="tabs">
     <a href="#overview" data-v="overview">ภาพรวม</a>
     <a href="#sites" data-v="sites">ค้นหาสถานี</a>
+    <a href="#notices" data-v="notices">หนังสือ/บันทึก<span class="badge warn hide" id="ntcBadge">0</span></a>
     <a href="#record" data-v="record">บันทึกรื้อถอน/ติดตั้ง<span class="badge info" id="recBadge">0</span></a>
-    <a href="#reports" data-v="reports">ออกรายงาน Excel</a>
+    <a href="#reports" data-v="reports">รายงาน</a>
+    <a href="#billing" data-v="billing">ค่าบริการ 2572–2591</a>
     <a href="#checks" data-v="checks">ตรวจสอบข้อมูล<span class="badge warn" id="chkBadge">0</span></a>
     <a href="#admin" data-v="admin" class="admin-only hide">ผู้ดูแลระบบ<span class="badge warn hide" id="pendBadge">0</span></a>
   </nav>
@@ -285,6 +301,10 @@ body.ro .wr{display:none!important}
           </div>
           <div class="field"><label>หมายเหตุ</label><input type="text" id="note" placeholder="เช่น รื้อถอน ANT AWN">
             <div class="chips" id="noteChips"></div></div>
+          <div class="row" style="gap:10px;align-items:flex-end;margin-bottom:12px">
+            <div class="field" style="margin:0;flex:1;min-width:130px"><label>วันที่มีผล</label><input type="date" id="effDate"></div>
+            <div class="field" style="margin:0;flex:2;min-width:180px"><label>อ้างอิงหนังสือ</label><select id="noticeRef"><option value="">— ไม่ระบุ —</option></select></div>
+          </div>
           <label class="row" style="margin-bottom:12px;font-size:13px"><input type="checkbox" id="towerRm"> เสารื้อถอนแล้ว (ปรับ “จำนวน TOWER เช่า ณ ปัจจุบัน” เป็น 0)</label>
           <div id="formMsg"></div>
           <div class="row"><button class="btn pri" id="saveBtn">บันทึก</button><button class="btn" id="clearBtn">ล้าง</button></div>
@@ -307,7 +327,42 @@ body.ro .wr{display:none!important}
 </section>
 
 <!-- REPORTS -->
+<section class="view" id="v-notices">
+  <div class="sec-h" style="margin-top:0"><div><h2>ทะเบียนหนังสือ / บันทึก</h2><p class="sub" style="margin:0">บันทึกหนังสือแจ้งยกเลิก รื้อถอน ติดตั้ง ฯลฯ พร้อมรายการสถานี แล้วนำไปปรับยอดในเดือนที่บันทึกได้ในคลิกเดียว</p></div>
+    <button class="btn pri wr" id="ntcNew">+ บันทึกหนังสือใหม่</button></div>
+  <div class="grid kpis" id="ntcKpis" style="margin:14px 0"></div>
+  <div class="toolbar">
+    <input type="search" id="ntcQ" placeholder="ค้นหา เลขที่ / เรื่อง / SITECODE" style="flex:1;min-width:200px">
+    <select id="ntcType"><option value="">ทุกประเภท</option></select>
+    <select id="ntcStatus"><option value="">ทุกสถานะ</option></select>
+    <select id="ntcYear"><option value="">ทุกปี</option></select>
+  </div>
+  <div class="tbl-wrap tall"><table id="tblNtc"></table></div>
+</section>
+
 <section class="view" id="v-reports">
+  <h2>รายงาน</h2>
+  <p class="sub">เลือกชุดข้อมูล ตัวกรอง และคอลัมน์ที่ต้องการ แล้วส่งออกเป็น Excel หรือ PDF</p>
+  <div class="card" id="rbCard">
+    <div class="rb-grid">
+      <div>
+        <div class="field"><label>ชุดข้อมูล</label><select id="rbType"></select></div>
+        <div class="field"><label>ชื่อรายงาน</label><input type="text" id="rbTitle"></div>
+        <div id="rbFilters"></div>
+        <div class="field"><label>เรียงตาม</label><div class="row"><select id="rbSort" style="flex:1"></select><select id="rbDir"><option value="asc">น้อย→มาก</option><option value="desc">มาก→น้อย</option></select></div></div>
+        <div class="field"><label>รูปแบบ PDF</label><select id="rbOrient"><option value="landscape">แนวนอน (A4)</option><option value="portrait">แนวตั้ง (A4)</option></select></div>
+      </div>
+      <div>
+        <div class="field"><label>คอลัมน์ที่จะแสดง <a class="muted" id="rbAll" style="cursor:pointer;font-size:12px;margin-left:8px">เลือกทั้งหมด</a> <a class="muted" id="rbNone" style="cursor:pointer;font-size:12px;margin-left:6px">ล้าง</a></label>
+          <div class="rb-cols" id="rbCols"></div></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:6px"><button class="btn pri" id="rbXlsx">ส่งออก Excel</button><button class="btn pri" id="rbPdf">ส่งออก PDF</button><span class="muted" id="rbCount" style="margin-left:auto;font-size:13px"></span></div>
+    <div id="rbMsg"></div>
+  </div>
+  <div class="sec-h"><h3>ตัวอย่างรายงาน</h3><span class="muted" style="font-size:12px">แสดงสูงสุด 200 แถว — ไฟล์ที่ส่งออกมีครบทุกแถว</span></div>
+  <div class="tbl-wrap tall"><table id="rbPreview"></table></div>
+  <div class="sec-h"><h3>รายงานรูปแบบเดิม (ไฟล์ Excel ตามฟอร์มที่ใช้อยู่)</h3></div>
   <h2>ออกรายงาน Excel</h2>
   <p class="sub">สร้างไฟล์ในรูปแบบเดียวกับไฟล์ที่ใช้อยู่ — มีสูตร SUBTOTAL / SUMIF พร้อมใช้ ไม่ต้องคัดลอกคอลัมน์เอง</p>
   <div id="dlNote"></div>
@@ -334,6 +389,38 @@ body.ro .wr{display:none!important}
 </section>
 
 <!-- CHECKS -->
+<section class="view" id="v-billing">
+  <h2>ค่าบริการตามสัญญา 1 ม.ค. 2572 – 31 ธ.ค. 2591</h2>
+  <p class="sub">คำนวณค่าใช้บริการเสาที่ AWN ชำระ (ข้อ 5) และค่าบำรุงรักษา/ค่าพื้นที่ที่ NT ชำระ (ข้อ 8) จากจำนวนใช้งานจริงในระบบ เพื่อตรวจสอบใบแจ้งหนี้ ใบลดหนี้ และใบเพิ่มหนี้</p>
+  <div class="toolbar">
+    <label class="muted" style="font-size:13px">เดือนที่คำนวณ</label><select id="bilMonth"></select>
+    <span class="badge" id="bilBasis"></span>
+    <span style="margin-left:auto" class="row"><button class="btn" id="bilXlsx">ส่งออก Excel</button><button class="btn" id="bilPdf">ส่งออก PDF</button></span>
+  </div>
+  <div class="grid kpis" id="bilKpis"></div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h3>NT เรียกเก็บจาก AWN — ค่าใช้บริการเสา (ข้อ 5)</h3><div class="tbl-wrap"><table id="bilIn"></table></div></div>
+    <div class="card"><h3>NT ชำระให้ AWN — ค่าบำรุงรักษา / ค่าพื้นที่ (ข้อ 8)</h3><div class="tbl-wrap"><table id="bilOut"></table></div></div>
+  </div>
+  <div class="sec-h"><h3>รายการปรับปรุงในเดือน (ลดหนี้ / เพิ่มหนี้)</h3><span class="muted" style="font-size:12px">คิดตามวันที่มีผลของรายการ เฉลี่ยรายวันตามข้อ 5.1</span></div>
+  <div class="tbl-wrap" style="max-height:340px"><table id="bilAdj"></table></div>
+  <div class="sec-h"><h3>ประมาณการตลอดสัญญา (20 ปี)</h3><span class="muted" style="font-size:12px">ใช้จำนวนใช้งานล่าสุดคงที่ · อัตราปรับขึ้นปีละ 3%</span></div>
+  <div class="tbl-wrap" style="max-height:420px"><table id="bilYears"></table></div>
+  <div class="sec-h"><h3>ข้อมูลสถานีสำหรับคิดค่าบริการ</h3><span class="muted" style="font-size:12px" id="attrInfo"></span></div>
+  <div class="card">
+    <div class="toolbar" style="margin-bottom:8px">
+      <input type="search" id="attrQ" placeholder="ค้นหา SITECODE / ชื่อ" style="flex:1;min-width:180px">
+      <select id="attrF"><option value="">ทั้งหมด</option><option value="changed">ที่ปรับจากค่าตั้งต้น</option><option value="repl">อยู่ระหว่างจัดหาทดแทน</option><option value="nospace">ไม่คิดค่าพื้นที่</option><option value="noom">ไม่คิดค่าบำรุงรักษา</option><option value="extra">เสา NT นอก 11,946</option><option value="out">ไม่อยู่ในสัญญา</option></select>
+    </div>
+    <div class="tbl-wrap" style="max-height:380px"><table id="tblAttr"></table></div>
+    <details class="admin-only hide" style="margin-top:12px"><summary style="cursor:pointer;font-weight:600">วางข้อมูลจาก Excel หลายสถานี (ผู้ดูแล)</summary>
+      <p class="muted" style="font-size:12.5px;margin:8px 0">คอลัมน์: <b>SITECODE · ในสัญญา (Y/N) · AWN บำรุงรักษา (Y/N) · AWN ให้ใช้พื้นที่ (Y/N) · เสา NT นอก 11,946 (Y/N) · เริ่มจัดหาทดแทน (วว/ดด/ปปปป) · เปิดใช้ทดแทน</b> — ช่องว่าง = ไม่เปลี่ยน</p>
+      <textarea id="attrPaste"></textarea><div class="row" style="margin-top:8px"><button class="btn pri" id="attrApply">ตรวจสอบและบันทึก</button></div><div id="attrMsg"></div>
+    </details>
+  </div>
+  <details class="card" style="margin-top:14px" id="setCard"><summary style="cursor:pointer;font-weight:600">อัตราและเงื่อนไขสัญญา</summary><div id="setBody" style="margin-top:12px"></div></details>
+</section>
+
 <section class="view" id="v-checks">
   <h2>ตรวจสอบความถูกต้องของข้อมูล</h2>
   <p class="sub">ระบบตรวจทุกครั้งที่เปิดหน้า — ช่วยจับจุดที่ตัวเลขไม่สอดคล้องก่อนส่งรายงาน</p>
@@ -381,8 +468,8 @@ const sum=a=>a.reduce((x,y)=>x+y,0);
 let D, R=[], N=0, MONTHS, BASE, BASEIDX, BASE_ROWS=[], KEYIDX=new Map(), CH={};
 let base; // {ant:[Int32Array x3], now:Int32Array, st:Array}
 let STATE={}; // month -> state
-let store={mode:'db',changes:new Map(),months:new Map(),extras:new Map()};
-let canWrite=false, conn='pending', ME=null, PROFILES=new Map();
+let store={mode:'db',changes:new Map(),months:new Map(),extras:new Map(),notices:new Map(),items:new Map(),attrs:new Map()};
+let canWrite=false, conn='pending', ME=null, PROFILES=new Map(), V2=false;
 const downloads={save:async({filename,data})=>{const url=URL.createObjectURL(data);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);return{status:'saved'}}};
 const sb=createClient(SUPABASE_URL,SUPABASE_KEY,{db:{schema:'awn'},auth:{flowType:'pkce',persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 let WORK, CLOSED=[];
@@ -433,12 +520,15 @@ function rebuildRows(){
 
 /* ---------- persistence (Supabase) ---------- */
 const chKey=(m,k)=>m+'|'+k;
-function rowToCh(r){return{month:r.month,k:r.k,row:r.row_idx,sc:r.sc,lid:r.lid,rm:r.rm||[0,0,0],ins:r.ins||[0,0,0],note:r.note||'',tower:!!r.tower,now:r.now_val,st:r.st,by:r.updated_by||r.created_by,at:r.updated_at,src:r.src,file:r.file}}
-function chToRow(c){return{month:c.month,k:c.k,row_idx:c.row??null,sc:c.sc??null,lid:c.lid!=null?String(c.lid):null,rm:(c.rm||[0,0,0]).map(v=>v|0),ins:(c.ins||[0,0,0]).map(v=>v|0),note:c.note||'',tower:!!c.tower,now_val:c.now??null,st:c.st??null,src:c.src||'manual',file:c.file||null}}
+function rowToCh(r){return{month:r.month,k:r.k,row:r.row_idx,sc:r.sc,lid:r.lid,rm:r.rm||[0,0,0],ins:r.ins||[0,0,0],note:r.note||'',tower:!!r.tower,now:r.now_val,st:r.st,by:r.updated_by||r.created_by,at:r.updated_at,src:r.src,file:r.file,eff:r.eff_date||null,notice:r.notice_id||null}}
+function chToRow(c){return{month:c.month,k:c.k,row_idx:c.row??null,sc:c.sc??null,lid:c.lid!=null?String(c.lid):null,rm:(c.rm||[0,0,0]).map(v=>v|0),ins:(c.ins||[0,0,0]).map(v=>v|0),note:c.note||'',tower:!!c.tower,now_val:c.now??null,st:c.st??null,src:c.src||'manual',file:c.file||null,eff_date:c.eff||null,notice_id:c.notice||null}}
 function dbErr(error){const e=new Error(error.message||'error');e.code=error.code;if(error.code==='42501'){e.message='ไม่มีสิทธิ์บันทึก (ต้องเป็นผู้บันทึกหรือผู้ดูแล)'}return e}
 async function fetchAll(table){const out=[];const P=1000;for(let from=0;;from+=P){const{data,error}=await sb.from(table).select('*').range(from,from+P-1);if(error)throw dbErr(error);out.push(...data);if(data.length<P)break}return out}
 async function loadStore(){
-  const[ch,ms,ex]=await Promise.all([fetchAll('changes'),fetchAll('months'),fetchAll('extra_sites')]);
+  const[ch,ms,ex,nt,ni,sa,cs]=await Promise.all([fetchAll('changes'),fetchAll('months'),fetchAll('extra_sites'),fetchAll('notices').catch(()=>null),fetchAll('notice_items').catch(()=>null),fetchAll('site_attrs').catch(()=>null),fetchAll('contract_settings').catch(()=>null)]);
+  V2=!!(nt&&ni&&sa&&cs);
+  store.notices=new Map((nt||[]).map(r=>[r.id,r]));store.items=new Map((ni||[]).map(r=>[r.id,r]));
+  store.attrs=new Map((sa||[]).map(r=>[r.k,r]));SETTINGS=Object.assign({},DEFAULT_SETTINGS,(cs&&cs[0]&&cs[0].data)||{});
   store.changes=new Map(ch.map(r=>[chKey(r.month,r.k),rowToCh(r)]));
   store.months=new Map(ms.map(r=>[r.month,{closed:r.closed,at:r.closed_at,by:r.closed_by}]));
   store.extras=new Map(ex.map(r=>[r.k,Object.assign({},r.data,{k:r.k,from:r.from_month})]));
@@ -451,10 +541,14 @@ function connect(){
     if(table==='changes'){if(p.eventType==='DELETE')store.changes.delete(chKey(o.month,o.k));else store.changes.set(chKey(n.month,n.k),rowToCh(n));recompute()}
     else if(table==='months'){if(p.eventType==='DELETE')store.months.delete(o.month);else store.months.set(n.month,{closed:n.closed,at:n.closed_at,by:n.closed_by});recompute()}
     else if(table==='extra_sites'){if(p.eventType==='DELETE')store.extras.delete(o.k);else store.extras.set(n.k,Object.assign({},n.data,{k:n.k,from:n.from_month}));rebuildRows();recompute()}
+    else if(table==='notices'){if(p.eventType==='DELETE'){store.notices.delete(o.id);for(const[id,it] of store.items)if(it.notice_id===o.id)store.items.delete(id)}else store.notices.set(n.id,n);renderNoticesSoon()}
+    else if(table==='notice_items'){if(p.eventType==='DELETE')store.items.delete(o.id);else store.items.set(n.id,n);renderNoticesSoon()}
+    else if(table==='site_attrs'){if(p.eventType==='DELETE')store.attrs.delete(o.k);else store.attrs.set(n.k,n);renderBillingSoon()}
+    else if(table==='contract_settings'){if(n&&n.data){SETTINGS=Object.assign({},DEFAULT_SETTINGS,n.data);renderBillingSoon()}}
     else if(table==='profiles'){if(n){PROFILES.set(n.id,n);if(n.id===ME.id&&n.role!==ME.role)location.reload()}if(isAdmin())renderAdmin()}
   };
   const ch=sb.channel('awn-db');
-  ['changes','months','extra_sites','profiles'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'awn',table:t},p=>apply(t,p)));
+  ['changes','months','extra_sites','profiles','notices','notice_items','site_attrs','contract_settings'].forEach(t=>ch.on('postgres_changes',{event:'*',schema:'awn',table:t},p=>apply(t,p)));
   ch.subscribe(status=>{
     if(status==='SUBSCRIBED'){setSync('ok',canWrite?'ออนไลน์ · อัปเดตอัตโนมัติ':'ออนไลน์ · ดูอย่างเดียว');
       // catch up anything missed while (re)connecting
@@ -546,7 +640,7 @@ function rowAt(i,m){ // split [nw,mw,dt] for row i at month m
 function prevMonthState(m){return m===mNext(BASE)?base:STATE[mPrev(m)]}
 
 /* ---------- routing ---------- */
-const VIEWS=['overview','sites','record','reports','checks','admin'];
+const VIEWS=['overview','sites','notices','record','reports','billing','checks','admin'];
 function route(){
   if(typeof closeModal==='function')closeModal();
   let v=VIEWS.includes(location.hash.slice(1))?location.hash.slice(1):'overview';
@@ -555,9 +649,12 @@ function route(){
   document.querySelectorAll('#tabs a').forEach(a=>a.classList.toggle('on',a.dataset.v===v));
   if(v==='overview')renderOverview();
   if(v==='admin'){renderAdmin();loadAudit()}
+  if(v==='notices')renderNotices();
+  if(v==='billing')renderBilling();
+  if(v==='reports')rbRender();
 }
 function renderAll(){
-  renderOverview();renderSites();renderRecord();renderReports();renderChecks();renderAdmin();
+  renderOverview();renderSites();renderRecord();renderReports();renderChecks();renderAdmin();renderNotices();renderBilling();if($('v-reports').classList.contains('on'))rbRender();
 }
 
 /* ---------- charts ---------- */
@@ -681,6 +778,7 @@ function openSite(i){
   </div>
   <h3>ประวัติรายเดือน</h3>
   <div class="tbl-wrap" style="max-height:340px"><table><thead><tr><th>เดือน</th><th class="r">ANT AWN</th><th class="r">MW</th><th class="r">DTAC</th><th class="r">Total</th><th class="r">±</th><th>รายการ</th></tr></thead><tbody>${rows}</tbody></table></div>
+  ${siteNoticesHTML(o)}
   <div class="row" style="margin-top:14px"><button class="btn pri" id="mRec">บันทึกรื้อถอน/ติดตั้ง ${mL(WORK)}</button></div>`;
   $('modalBg').classList.add('on');
   $('mClose').onclick=closeModal;$('mRec').onclick=()=>{closeModal();location.hash='record';pickSite(i)};
@@ -719,7 +817,7 @@ function pickSite(i){
   $('selSite').innerHTML=`<div class="site-card"><b>${esc(o.sc)}</b> · ${esc(o.nm)}<br><span class="muted">${o.lid} · ${esc(o.pv)} · ${o.rg} · ${esc(o.ad)}</span>${dup>1?`<br><span class="badge warn">SITECODE นี้มี ${dup} แถว (หลายเสา) — กำลังแก้แถวนี้</span>`:''}</div>`;
   const ex=getCh(WORK,i);
   for(let j=0;j<3;j++){$('rm'+j).value=ex?.rm?.[j]||'';$('in'+j).value=ex?.ins?.[j]||''}
-  $('note').value=ex?.note||'';$('towerRm').checked=!!ex?.tower;$('formMsg').innerHTML=ex?'<div class="msg info">สถานีนี้มีรายการในเดือนนี้แล้ว — แก้ไขแล้วกดบันทึกเพื่อแทนที่</div>':'';
+  $('note').value=ex?.note||'';$('towerRm').checked=!!ex?.tower;$('effDate').value=ex?.eff||'';fillNoticeRef(ex?.notice||'');$('formMsg').innerHTML=ex?'<div class="msg info">สถานีนี้มีรายการในเดือนนี้แล้ว — แก้ไขแล้วกดบันทึกเพื่อแทนที่</div>':'';
   $('formBody').classList.remove('hide');updForm();
 }
 function formVals(){const v=k=>Math.max(0,parseInt($(k).value)||0);return{rm:[0,1,2].map(j=>v('rm'+j)),ins:[0,1,2].map(j=>v('in'+j))}}
@@ -731,7 +829,7 @@ async function saveForm(){
   if(!sum(rm)&&!sum(ins)&&!tower){const ex=getCh(WORK,SEL);if(ex){await delChange(ex.id);$('formMsg').innerHTML='<div class="msg ok">ลบรายการของสถานีนี้แล้ว</div>'}else $('formMsg').innerHTML='<div class="msg err">กรุณาใส่จำนวนรื้อถอนหรือติดตั้ง</div>';return}
   for(let j=0;j<3;j++)if(p[j]-rm[j]+ins[j]<0){$('formMsg').innerHTML=`<div class="msg err">${TYPES[j]} รื้อถอนมากกว่าที่มีอยู่ (${p[j]})</div>`;return}
   const o=R[SEL];const by=await myId();
-  try{await putChange(getCh(WORK,SEL)?.id||chId(WORK,o),{month:WORK,row:SEL,k:o.k,sc:o.sc,lid:o.lid,rm,ins,note:$('note').value.trim(),tower,by,at:new Date().toISOString()});
+  try{await putChange(getCh(WORK,SEL)?.id||chId(WORK,o),{month:WORK,row:SEL,k:o.k,sc:o.sc,lid:o.lid,rm,ins,note:$('note').value.trim(),tower,eff:$('effDate').value||null,notice:$('noticeRef').value||null,by,at:new Date().toISOString()});
     $('formMsg').innerHTML=`<div class="msg ok">บันทึก ${esc(o.sc)} แล้ว</div>`;
     setTimeout(()=>{SEL=null;$('acIn').value='';$('selSite').innerHTML='';$('formBody').classList.add('hide');$('formMsg').innerHTML='';$('acIn').focus()},900);
   }catch(e){$('formMsg').innerHTML=`<div class="msg err">บันทึกไม่สำเร็จ: ${esc(e.message||e.code)}</div>`}
@@ -1166,6 +1264,578 @@ async function start(){
   if(RECOVERY)return;
   if(session)enter(session);else gate('login');
 }
+/* =====================================================================
+   v2 — ทะเบียนหนังสือ · ตัวสร้างรายงาน · ค่าบริการตามสัญญา 2572–2591
+   ===================================================================== */
+const DEFAULT_SETTINGS={start:'2572-01',end:'2591-12',min_ant:88000,contract_towers:11946,rate_ant:1836,rate_excess:750,rate_extra_nt:1836,rate_repl:750,rate_om:2000,rate_space:6000,esc_tower:0.03,esc_service:0.03,vat:0.07,count_types:[true,true,true]};
+let SETTINGS=Object.assign({},DEFAULT_SETTINGS);
+const DOC_TYPES={remove_confirm:'แจ้งยืนยันการรื้อถอนเสา/อุปกรณ์',cancel:'แจ้งยกเลิกการใช้บริการ (ANT)',remove_plan:'แจ้งแผนการรื้อถอนเสา/อุปกรณ์',install:'แจ้งเข้าติดตั้งอุปกรณ์',change:'แจ้งย้าย/เปลี่ยนแปลงการใช้เสา ANT/พื้นที่/การบำรุงรักษา',ant_check:'แจ้งตรวจสอบปริมาณการใช้ Antenna',invoice:'แจ้งเอกสารใบแจ้งหนี้',other:'อื่น ๆ'};
+const DOC_STATUS={received:'รับเรื่อง',forwarded:'แจ้งหน่วยงานตรวจสอบ',verified:'ตรวจสอบแล้ว',applied:'ปรับยอดในระบบแล้ว',closed:'ปิดเรื่อง'};
+const DIRS={in:'รับจาก AWN',out:'ส่งถึง AWN',internal:'ภายใน NT'};
+const ACTIONS={cancel_ant:'ยกเลิก/รื้อถอน ANT',remove_tower:'รื้อถอนเสา',install:'ติดตั้งเพิ่ม',move:'ย้าย/เปลี่ยนแปลง',other:'อื่น ๆ'};
+const TYPE3=['ANT AWN','Microwave','ANT DTAC'];
+store.notices=store.notices||new Map();store.items=store.items||new Map();store.attrs=store.attrs||new Map();
+
+/* ---------- date helpers (DB = ISO ค.ศ., หน้าจอ = พ.ศ.) ---------- */
+const pad2=n=>String(n).padStart(2,'0');
+function fmtD(iso){if(!iso)return'';const[y,m,d]=String(iso).slice(0,10).split('-').map(Number);if(!y)return'';return`${d} ${TH[m-1]} ${String(y+543).slice(2)}`}
+function fmtDL(iso){if(!iso)return'';const[y,m,d]=String(iso).slice(0,10).split('-').map(Number);return`${d} ${THF[m-1]} ${y+543}`}
+function isoToMk(iso){if(!iso)return null;const[y,m]=String(iso).split('-').map(Number);return`${y+543}-${pad2(m)}`}
+function mkDays(mk){const[y,m]=mk.split('-').map(Number);return new Date(y-543,m,0).getDate()}
+function mkStartIso(mk){const[y,m]=mk.split('-').map(Number);return`${y-543}-${pad2(m)}-01`}
+function mkEndIso(mk){const[y,m]=mk.split('-').map(Number);return`${y-543}-${pad2(m)}-${pad2(mkDays(mk))}`}
+function mkIdx(mk){const[y,m]=mk.split('-').map(Number);return y*12+m-1}
+function idxMk(i){return`${Math.floor(i/12)}-${pad2(i%12+1)}`}
+function parseDateAny(v){
+  if(v==null||v==='')return null;
+  if(typeof v==='number'&&v>20000&&v<80000){const d=new Date(Math.round((v-25569)*86400000));return d.toISOString().slice(0,10)}
+  const s=String(v).trim();let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(m){let y=+m[1];if(y>2400)y-=543;return`${y}-${pad2(+m[2])}-${pad2(+m[3])}`}
+  m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})$/);
+  if(m){let y=+m[3];if(y<100)y+=y>40?2500:2000;if(y>2400)y-=543;return`${y}-${pad2(+m[2])}-${pad2(+m[1])}`}
+  return null;
+}
+const todayIso=()=>new Date().toISOString().slice(0,10);
+function rowByCode(code){const c=String(code||'').trim().toUpperCase();if(!c)return null;const cand=R.filter(o=>o.sc.toUpperCase()===c||String(o.lid)===c);if(!cand.length)return null;return cand.find(o=>sum(curOf(o.i))>0)||cand[0]}
+function softDebounce(fn,ms){let t;return()=>{clearTimeout(t);t=setTimeout(fn,ms)}}
+const renderNoticesSoon=softDebounce(()=>{renderNotices();if(OPEN_NOTICE&&!NDIRTY)openNotice(OPEN_NOTICE,true)},150);
+const renderBillingSoon=softDebounce(()=>renderBilling(),200);
+function needV2(el){if(V2)return false;el.innerHTML='<div class="msg warn">ยังไม่ได้อัปเกรดฐานข้อมูล — ให้ผู้ดูแลรันไฟล์ <b>schema_v2.sql</b> ใน Supabase → SQL Editor แล้วรีเฟรชหน้านี้</div>';return true}
+function noticeItems(id){return[...store.items.values()].filter(x=>x.notice_id===id)}
+function itemQty(it){return sum(it.rm||[])+sum(it.ins||[])}
+
+/* =====================================================================
+   1) ทะเบียนหนังสือ / บันทึก
+   ===================================================================== */
+let ntcInit=false, OPEN_NOTICE=null, NDRAFT=null, NITEMS=[], NDIRTY=false, NFILE=null;
+function initNotices(){
+  if(ntcInit)return;ntcInit=true;
+  const add=(sel,obj)=>Object.entries(obj).forEach(([k,v])=>{const o=document.createElement('option');o.value=k;o.textContent=v;sel.appendChild(o)});
+  add($('ntcType'),DOC_TYPES);add($('ntcStatus'),DOC_STATUS);
+  ['ntcQ','ntcType','ntcStatus','ntcYear'].forEach(id=>$(id).addEventListener('input',renderNotices));
+  $('ntcNew').onclick=()=>openNotice(null);
+}
+function renderNotices(){
+  if(!$('v-notices'))return;initNotices();
+  if(!V2){needV2($('tblNtc'));return}
+  const all=[...store.notices.values()];
+  const pend=all.filter(n=>!['applied','closed'].includes(n.status)).length;
+  $('ntcBadge').textContent=pend;$('ntcBadge').classList.toggle('hide',!pend);
+  const years=[...new Set(all.map(n=>n.doc_date&&+n.doc_date.slice(0,4)+543).filter(Boolean))].sort((a,b)=>b-a);
+  const ys=$('ntcYear'),yv=ys.value;ys.innerHTML='<option value="">ทุกปี</option>'+years.map(y=>`<option value="${y}">พ.ศ. ${y}</option>`).join('');ys.value=years.includes(+yv)?yv:'';
+  if(!$('v-notices').classList.contains('on'))return;
+  const items=[...store.items.values()];
+  const waitItems=items.filter(x=>!x.applied_month&&(itemQty(x)||x.tower_removed)).length;
+  const overdue=all.filter(n=>n.due_date&&n.due_date<todayIso()&&!['applied','closed'].includes(n.status)).length;
+  const k=(l,v,d,c)=>`<div class="card kpi"${c?` style="border-color:${c}"`:''}><div class="lbl">${l}</div><div class="val num">${fmt(v)}</div><div class="dl">${d||''}</div></div>`;
+  $('ntcKpis').innerHTML=k('หนังสือทั้งหมด',all.length,`${fmt(items.length)} รายการสถานี`)+k('รอดำเนินการ',pend,'ยังไม่ปรับยอด/ปิดเรื่อง',pend?'var(--warn)':'')+k('รายการสถานีรอปรับยอด',waitItems,'กดเปิดหนังสือ → นำเข้าเดือน')+k('เกินกำหนดดำเนินการ',overdue,'',overdue?'var(--bad)':'');
+  const q=$('ntcQ').value.trim().toLowerCase(),ty=$('ntcType').value,stt=$('ntcStatus').value,yr=$('ntcYear').value;
+  const byN={};items.forEach(it=>{(byN[it.notice_id]=byN[it.notice_id]||[]).push(it)});
+  const list=all.filter(n=>{if(ty&&n.doc_type!==ty)return false;if(stt&&n.status!==stt)return false;if(yr&&!(n.doc_date&&+n.doc_date.slice(0,4)+543===+yr))return false;
+    if(q){const its=byN[n.id]||[];const hay=(n.doc_no+' '+n.subject+' '+(n.ref_no||'')+' '+n.note+' '+its.map(x=>x.sc+' '+(x.site_name||'')).join(' ')).toLowerCase();if(!hay.includes(q))return false}return true})
+    .sort((a,b)=>String(b.doc_date||'').localeCompare(String(a.doc_date||''))||String(b.created_at).localeCompare(String(a.created_at)));
+  let h=`<thead><tr><th>เลขที่</th><th>ลงวันที่</th><th>ประเภท</th><th>เรื่อง</th><th>วันที่มีผล</th><th class="r">สถานี</th><th class="r">รื้อ/ยกเลิก</th><th class="r">ติดตั้ง</th><th>สถานะ</th><th></th></tr></thead><tbody>`;
+  for(const n of list){const its=byN[n.id]||[];const rm=sum(its.map(x=>sum(x.rm||[]))),ins=sum(its.map(x=>sum(x.ins||[])));const late=n.due_date&&n.due_date<todayIso()&&!['applied','closed'].includes(n.status);
+    h+=`<tr class="click" data-id="${n.id}"><td><b>${esc(n.doc_no)}</b></td><td>${fmtD(n.doc_date)}</td><td>${esc(DOC_TYPES[n.doc_type]||n.doc_type)}</td><td style="white-space:normal;min-width:200px">${esc(n.subject)}</td><td>${fmtD(n.eff_date)}</td><td class="r num">${its.length||''}</td><td class="r num">${rm||''}</td><td class="r num">${ins||''}</td><td><span class="badge st-${n.status}">${DOC_STATUS[n.status]||n.status}</span>${late?' <span class="badge bad">เกินกำหนด</span>':''}</td><td>${n.file_path?'📎':''}</td></tr>`}
+  if(!list.length)h+=`<tr><td colspan="10" class="muted" style="text-align:center;padding:30px">${all.length?'ไม่พบหนังสือที่ตรงเงื่อนไข':'ยังไม่มีหนังสือ — กด “+ บันทึกหนังสือใหม่”'}</td></tr>`;
+  $('tblNtc').innerHTML=h+'</tbody>';
+  $('tblNtc').querySelectorAll('tr.click').forEach(tr=>tr.onclick=()=>openNotice(tr.dataset.id));
+}
+function openNotice(id,refresh){
+  const n=id?store.notices.get(id):null;if(id&&!n)return;const keepMsg=refresh&&$('nMsg')?$('nMsg').innerHTML:'';
+  OPEN_NOTICE=id;
+  if(!refresh){NDIRTY=false;NFILE=null;NDRAFT=n?Object.assign({},n):{doc_no:'',doc_date:todayIso(),recv_date:todayIso(),direction:'in',doc_type:'remove_confirm',subject:'',eff_date:'',ref_no:'',due_date:'',status:'received',note:'',file_path:null};
+    NITEMS=n?noticeItems(id).sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at))).map(x=>Object.assign({},x)):[]}
+  const ro=!canWrite;const dis=ro?'disabled':'';
+  const opt=(obj,v)=>Object.entries(obj).map(([k,t])=>`<option value="${k}"${k===v?' selected':''}>${esc(t)}</option>`).join('');
+  const notApplied=NITEMS.filter(x=>!x.applied_month&&(itemQty(x)||x.tower_removed));
+  $('modal').innerHTML=`<div class="modal-h"><div><h2>${n?'หนังสือ '+esc(n.doc_no):'บันทึกหนังสือใหม่'}</h2><div class="muted">${n?`บันทึกโดย ${esc(nameOf(n.created_by))||'-'}${n.updated_at&&!isNaN(new Date(n.updated_at))?` · แก้ไขล่าสุด ${new Date(n.updated_at).toLocaleString('th-TH')}`:''}`:'กรอกข้อมูลตามหนังสือที่ได้รับ แล้วเพิ่มรายการสถานี'}</div></div><button class="btn sm" id="nClose">ปิด</button></div>
+  <div class="fgrid">
+    <div class="field"><label>เลขที่หนังสือ/บันทึก *</label><input type="text" id="nDocNo" value="${esc(NDRAFT.doc_no)}" ${dis} placeholder="เช่น AWN-NT 123/2569"></div>
+    <div class="field"><label>ลงวันที่</label><input type="date" id="nDocDate" value="${NDRAFT.doc_date||''}" ${dis}></div>
+    <div class="field"><label>วันที่รับ</label><input type="date" id="nRecv" value="${NDRAFT.recv_date||''}" ${dis}></div>
+    <div class="field"><label>ทิศทาง</label><select id="nDir" ${dis}>${opt(DIRS,NDRAFT.direction)}</select></div>
+    <div class="field"><label>ประเภทหนังสือ</label><select id="nType" ${dis}>${opt(DOC_TYPES,NDRAFT.doc_type)}</select></div>
+    <div class="field"><label>วันที่มีผล (ยกเลิก/รื้อถอน/ติดตั้ง)</label><input type="date" id="nEff" value="${NDRAFT.eff_date||''}" ${dis}></div>
+    <div class="field"><label>อ้างถึง</label><input type="text" id="nRef" value="${esc(NDRAFT.ref_no||'')}" ${dis}></div>
+    <div class="field"><label>กำหนดดำเนินการ</label><input type="date" id="nDue" value="${NDRAFT.due_date||''}" ${dis}></div>
+    <div class="field"><label>สถานะ</label><select id="nStatus" ${dis}>${opt(DOC_STATUS,NDRAFT.status)}</select></div>
+  </div>
+  <div class="field"><label>เรื่อง *</label><input type="text" id="nSubject" value="${esc(NDRAFT.subject)}" ${dis}></div>
+  <div class="field"><label>รายละเอียด / หมายเหตุ</label><textarea id="nNote" style="min-height:60px;font-family:inherit;font-size:14px" ${dis}>${esc(NDRAFT.note)}</textarea></div>
+  <div class="row" style="margin-bottom:14px">${NDRAFT.file_path?`<button class="btn sm" id="nView">📎 เปิดไฟล์แนบ</button>`:'<span class="muted" style="font-size:13px">ยังไม่มีไฟล์แนบ</span>'}${ro?'':`<label class="btn sm">${NDRAFT.file_path?'แทนที่ไฟล์':'แนบไฟล์สแกน (PDF/รูป)'}<input type="file" id="nFile" accept=".pdf,image/*" class="hide"></label><span class="muted" id="nFileName" style="font-size:12.5px">${NFILE?esc(NFILE.name):''}</span>`}</div>
+  <div class="sec-h" style="margin-top:4px"><h3>รายการสถานีตามหนังสือ (${NITEMS.length})</h3>${ro?'':'<span class="row"><button class="btn sm" id="nAdd">+ เพิ่มสถานี</button><button class="btn sm" id="nPasteT">วางจาก Excel</button></span>'}</div>
+  <div id="nPasteBox" class="hide" style="margin-bottom:10px"><p class="muted" style="font-size:12.5px;margin:0 0 6px">คอลัมน์: <b>SITECODE · ประเภท (ANT/MW/DTAC) · รื้อถอน · ติดตั้ง · วันที่มีผล · หมายเหตุ</b> (วันที่ใส่แบบ 15/10/2569 ได้)</p><textarea id="nPaste"></textarea><div class="row" style="margin-top:6px"><button class="btn sm pri" id="nPasteGo">เพิ่มรายการ</button><span id="nPasteMsg" class="muted" style="font-size:12.5px"></span></div></div>
+  <div class="tbl-wrap" style="max-height:340px"><table class="items-tbl"><thead><tr><th>SITECODE</th><th>ชื่อสถานี</th><th>การดำเนินการ</th><th>ประเภท</th><th class="r">จำนวน</th><th>เสา</th><th>วันที่มีผล</th><th>หมายเหตุ</th><th>ปรับยอด</th><th></th></tr></thead><tbody id="nItems"></tbody></table></div>
+  <div id="nMsg"></div>
+  <div class="row" style="margin-top:14px;justify-content:space-between">
+    <span class="row">${ro?'':`<button class="btn pri" id="nSave">บันทึกหนังสือ</button>`}${!ro&&n?`<button class="btn" id="nApply" ${notApplied.length?'':'disabled'}>นำ ${notApplied.length} รายการเข้าเดือน ${mL(WORK)}</button>`:''}</span>
+    ${n&&isAdmin()?'<button class="btn danger" id="nDel">ลบหนังสือ</button>':''}
+  </div>`;
+  drawItems();if(keepMsg)$('nMsg').innerHTML=keepMsg;
+  $('modalBg').classList.add('on');
+  $('nClose').onclick=()=>{OPEN_NOTICE=null;closeModal()};
+  $('modal').querySelectorAll('input,select,textarea').forEach(el=>el.addEventListener('input',()=>{NDIRTY=true}));
+  if($('nView'))$('nView').onclick=viewNoticeFile;
+  if($('nFile'))$('nFile').onchange=e=>{NFILE=e.target.files[0]||null;$('nFileName').textContent=NFILE?NFILE.name:'';NDIRTY=true};
+  if($('nAdd'))$('nAdd').onclick=()=>{captureDraft();NITEMS.push({id:null,sc:'',k:null,site_name:'',action:defaultAction(),rm:[0,0,0],ins:[0,0,0],tower_removed:false,eff_date:$('nEff').value||null,note:'',_t:0,_q:1});NDIRTY=true;drawItems();const ins=$('nItems').querySelectorAll('input[data-f=sc]');if(ins.length)ins[ins.length-1].focus()};
+  if($('nPasteT'))$('nPasteT').onclick=()=>$('nPasteBox').classList.toggle('hide');
+  if($('nPasteGo'))$('nPasteGo').onclick=pasteItems;
+  if($('nSave'))$('nSave').onclick=saveNotice;
+  if($('nApply'))$('nApply').onclick=applyNotice;
+  if($('nDel'))$('nDel').onclick=deleteNotice;
+}
+function defaultAction(){const t=$('nType')?.value;return t==='install'?'install':t==='remove_confirm'||t==='remove_plan'?'cancel_ant':'cancel_ant'}
+function itemTypeQty(it){if(it._t!=null)return[it._t,it._q];for(let j=0;j<3;j++){if(it.rm?.[j])return[j,it.rm[j]];if(it.ins?.[j])return[j,it.ins[j]]}return[0,0]}
+function drawItems(){
+  const ro=!canWrite;const tb=$('nItems');if(!tb)return;
+  tb.innerHTML=NITEMS.map((it,ix)=>{const[t,q]=itemTypeQty(it);const o=it.k&&KEYIDX.has(it.k)?R[KEYIDX.get(it.k)]:null;const lock=ro||!!it.applied_month;const d=lock?'disabled':'';
+    return`<tr data-ix="${ix}"><td><input type="text" data-f="sc" value="${esc(it.sc||'')}" style="width:96px" ${d}></td><td style="white-space:normal;min-width:120px">${o?esc(o.nm)+`<br><small class="muted">${esc(o.pv)} · ANT ${sum(curOf(o.i))}</small>`:it.sc?'<span class="badge bad">ไม่พบ SITECODE</span>':''}</td>
+    <td><select data-f="action" ${d}>${Object.entries(ACTIONS).map(([k,v])=>`<option value="${k}"${k===it.action?' selected':''}>${v}</option>`).join('')}</select></td>
+    <td><select data-f="t" ${d}>${TYPE3.map((v,j)=>`<option value="${j}"${j===t?' selected':''}>${v}</option>`).join('')}</select></td>
+    <td class="r"><input type="number" min="0" data-f="q" value="${q}" ${d}></td>
+    <td><input type="checkbox" data-f="tower" ${it.tower_removed?'checked':''} ${d} title="เสารื้อถอนแล้ว"></td>
+    <td><input type="date" data-f="eff" value="${it.eff_date||''}" ${d}></td>
+    <td><input type="text" data-f="note" value="${esc(it.note||'')}" style="width:130px" ${d}></td>
+    <td>${it.applied_month?`<span class="badge good">${mL(it.applied_month)}</span>`:'<span class="badge">รอ</span>'}</td>
+    <td>${lock?'':`<button class="btn sm danger" data-del="${ix}">ลบ</button>`}</td></tr>`}).join('')||`<tr><td colspan="10" class="muted" style="text-align:center;padding:16px">ยังไม่มีรายการสถานี</td></tr>`;
+  tb.querySelectorAll('tr[data-ix]').forEach(tr=>{const it=NITEMS[+tr.dataset.ix];
+    tr.querySelectorAll('[data-f]').forEach(el=>el.addEventListener('change',()=>{NDIRTY=true;const f=el.dataset.f;
+      if(f==='sc'){it.sc=el.value.trim().toUpperCase();const o=rowByCode(it.sc);it.k=o?o.k:null;it.lid=o?String(o.lid):null;it.site_name=o?o.nm:'';drawItems()}
+      else if(f==='action'){it.action=el.value;if(el.value==='remove_tower')it.tower_removed=true;drawItems()}
+      else if(f==='t')it._t=+el.value;else if(f==='q')it._q=Math.max(0,parseInt(el.value)||0);
+      else if(f==='tower')it.tower_removed=el.checked;else if(f==='eff')it.eff_date=el.value||null;else if(f==='note')it.note=el.value}))});
+  tb.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{NITEMS.splice(+b.dataset.del,1);NDIRTY=true;drawItems()});
+}
+function normItem(it){const[t,q]=itemTypeQty(it);const rm=[0,0,0],ins=[0,0,0];if(it.action==='install')ins[t]=q;else rm[t]=q;return{rm,ins}}
+function captureDraft(){
+  NDRAFT=Object.assign(NDRAFT,{doc_no:$('nDocNo').value.trim(),doc_date:$('nDocDate').value||null,recv_date:$('nRecv').value||null,direction:$('nDir').value,doc_type:$('nType').value,subject:$('nSubject').value.trim(),eff_date:$('nEff').value||null,ref_no:$('nRef').value.trim()||null,due_date:$('nDue').value||null,status:$('nStatus').value,note:$('nNote').value});
+}
+function pasteItems(){
+  const lines=$('nPaste').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);let ok=0,bad=[];captureDraft();
+  for(const l of lines){let c=l.split('\t');if(c.length<2)c=l.split(/\s*[,;]\s*|\s{2,}/);if(/^site/i.test(c[0]))continue;
+    let sc=c[0].trim().toUpperCase(),t=0,rm=0,ins=0,eff=null,note='';
+    if(c.length>=3&&isNaN(+c[1])){t=typeIdx(c[1]);rm=parseInt(c[2])||0;ins=parseInt(c[3])||0;eff=parseDateAny(c[4]);note=c.slice(5).join(' ')}
+    else{rm=parseInt(c[1])||0;ins=parseInt(c[2])||0;eff=parseDateAny(c[3]);note=c.slice(4).join(' ')}
+    if(t<0)t=0;const o=rowByCode(sc);if(!o){bad.push(sc);continue}
+    const add=(action,q)=>NITEMS.push({id:null,sc,k:o.k,lid:String(o.lid),site_name:o.nm,action,rm:[0,0,0],ins:[0,0,0],tower_removed:false,eff_date:eff||NDRAFT.eff_date||null,note,_t:t,_q:q});
+    if(rm)add('cancel_ant',rm);if(ins)add('install',ins);if(!rm&&!ins)add(defaultAction(),0);ok++}
+  NDIRTY=true;openNotice(OPEN_NOTICE,true);$('nPasteBox').classList.remove('hide');$('nPasteMsg').innerHTML=`เพิ่ม ${ok} สถานี${bad.length?` · <span style="color:var(--bad)">ไม่พบ: ${esc(bad.join(', '))}</span>`:''}`;
+}
+async function saveNotice(){
+  captureDraft();const msg=$('nMsg');
+  if(!NDRAFT.doc_no||!NDRAFT.subject){msg.innerHTML='<div class="msg err">กรุณาใส่เลขที่หนังสือและเรื่อง</div>';return}
+  const badSc=NITEMS.filter(it=>it.sc&&!it.k);if(badSc.length){msg.innerHTML=`<div class="msg err">ไม่พบ SITECODE: ${esc(badSc.map(x=>x.sc).join(', '))}</div>`;return}
+  $('nSave').disabled=true;msg.innerHTML='<div class="msg info">กำลังบันทึก…</div>';
+  try{
+    const id=OPEN_NOTICE||crypto.randomUUID();
+    if(NFILE){const path=`${id}/${Date.now()}-${NFILE.name.replace(/[^\w.\-]+/g,'_')}`;const{error}=await sb.storage.from('awn-docs').upload(path,NFILE,{upsert:true,contentType:NFILE.type||undefined});if(error)throw new Error('อัปโหลดไฟล์ไม่สำเร็จ: '+error.message);NDRAFT.file_path=path}
+    const row={id,doc_no:NDRAFT.doc_no,doc_date:NDRAFT.doc_date,recv_date:NDRAFT.recv_date,direction:NDRAFT.direction,doc_type:NDRAFT.doc_type,subject:NDRAFT.subject,eff_date:NDRAFT.eff_date,ref_no:NDRAFT.ref_no,due_date:NDRAFT.due_date,status:NDRAFT.status,note:NDRAFT.note,file_path:NDRAFT.file_path||null};
+    let r=await sb.from('notices').upsert(row,{onConflict:'id'});if(r.error)throw dbErr(r.error);
+    const prev=noticeItems(id).map(x=>x.id);const keep=[];const rows=[];
+    for(const it of NITEMS){if(!it.sc)continue;const{rm,ins}=normItem(it);const iid=it.id||crypto.randomUUID();keep.push(iid);
+      rows.push({id:iid,notice_id:id,k:it.k,sc:it.sc,lid:it.lid||null,site_name:it.site_name||'',action:it.action,rm,ins,tower_removed:!!it.tower_removed,eff_date:it.eff_date||null,applied_month:it.applied_month||null,note:it.note||''})}
+    const dels=prev.filter(x=>!keep.includes(x));
+    if(dels.length){for(const d of dels){r=await sb.from('notice_items').delete().eq('id',d);if(r.error)throw dbErr(r.error);store.items.delete(d)}}
+    if(rows.length){r=await sb.from('notice_items').upsert(rows,{onConflict:'id'});if(r.error)throw dbErr(r.error)}
+    const now=new Date().toISOString();
+    store.notices.set(id,Object.assign({},store.notices.get(id)||{created_by:ME.id,created_at:now},row,{updated_at:now,updated_by:ME.id}));
+    rows.forEach(x=>store.items.set(x.id,Object.assign({created_at:store.items.get(x.id)?.created_at||now},x)));
+    NFILE=null;NDIRTY=false;OPEN_NOTICE=id;openNotice(id);renderNotices();fillNoticeRef($('noticeRef').value);
+    $('nMsg').innerHTML='<div class="msg ok">บันทึกหนังสือแล้ว'+(rows.some(x=>!x.applied_month&&(sum(x.rm)+sum(x.ins)||x.tower_removed))?` — กด “นำรายการเข้าเดือน ${mL(WORK)}” เพื่อปรับยอดสถานี`:'')+'</div>';
+  }catch(e){msg.innerHTML=`<div class="msg err">${esc(e.message)}</div>`;if($('nSave'))$('nSave').disabled=false}
+}
+async function applyNotice(){
+  const n=store.notices.get(OPEN_NOTICE);if(!n)return;
+  if(NDIRTY){$('nMsg').innerHTML='<div class="msg warn">มีการแก้ไขที่ยังไม่บันทึก — กด “บันทึกหนังสือ” ก่อน</div>';return}
+  const its=noticeItems(n.id).filter(x=>!x.applied_month&&(itemQty(x)||x.tower_removed));
+  const merged=new Map();const errs=[];
+  for(const it of its){const i=KEYIDX.get(it.k);if(i==null){errs.push(`${it.sc}: ไม่พบสถานีในระบบ`);continue}
+    const cur=merged.get(i)||(()=>{const ex=getCh(WORK,i);return{month:WORK,row:i,k:R[i].k,sc:R[i].sc,lid:R[i].lid,rm:[...(ex?.rm||[0,0,0])],ins:[...(ex?.ins||[0,0,0])],note:ex?.note||'',tower:!!ex?.tower,now:ex?.now??null,st:ex?.st??null,eff:ex?.eff||null,notice:ex?.notice||null,src:ex?.src||'manual',items:[]}})();
+    for(let j=0;j<3;j++){cur.rm[j]+=it.rm?.[j]||0;cur.ins[j]+=it.ins?.[j]||0}
+    if(it.tower_removed)cur.tower=true;
+    cur.eff=it.eff_date||n.eff_date||cur.eff;cur.notice=n.id;cur.items.push(it.id);
+    const tag=`ตามหนังสือ ${n.doc_no}`;const act=ACTIONS[it.action]||'';const add=`${act}${it.note?' '+it.note:''} (${tag})`;if(!cur.note.includes(tag))cur.note=cur.note?cur.note+', '+add:add;
+    merged.set(i,cur)}
+  const p=prevMonthState(WORK);
+  for(const[i,c] of merged){for(let j=0;j<3;j++){const left=p.ant[j][i]-c.rm[j]+c.ins[j];if(left<0)errs.push(`${R[i].sc}: ${TYPE3[j]} รื้อถอนเกินที่มี (${p.ant[j][i]})`)}}
+  if(errs.length){$('nMsg').innerHTML=`<div class="msg err">${errs.map(esc).join('<br>')}</div>`;return}
+  if(!await confirmBox(`นำ ${its.length} รายการเข้าเดือน ${mLF(WORK)}?`,`ปรับยอด ${merged.size} สถานี ตามหนังสือ ${esc(n.doc_no)} (รวมกับรายการเดิมของสถานีนั้นในเดือนนี้ ถ้ามี)`,'นำเข้า'))return;
+  try{
+    await putChanges([...merged.values()].map(c=>{const x=Object.assign({},c);delete x.items;x.src=x.src==='import'?'import':'notice';return x}));
+    const upd=its.map(it=>Object.assign({},it,{applied_month:WORK}));
+    let r=await sb.from('notice_items').upsert(upd.map(x=>{const y=Object.assign({},x);delete y.created_at;return y}),{onConflict:'id'});if(r.error)throw dbErr(r.error);
+    upd.forEach(x=>store.items.set(x.id,x));
+    const left=noticeItems(n.id).filter(x=>!x.applied_month&&(itemQty(x)||x.tower_removed)).length;
+    if(!left&&!['applied','closed'].includes(n.status)){r=await sb.from('notices').update({status:'applied'}).eq('id',n.id);if(!r.error)store.notices.set(n.id,Object.assign({},n,{status:'applied'}))}
+    openNotice(n.id);renderNotices();$('nMsg').innerHTML=`<div class="msg ok">ปรับยอด ${merged.size} สถานีในเดือน ${mLF(WORK)} แล้ว</div>`;
+  }catch(e){$('nMsg').innerHTML=`<div class="msg err">${esc(e.message)}</div>`}
+}
+async function deleteNotice(){
+  const n=store.notices.get(OPEN_NOTICE);if(!n)return;
+  const ap=noticeItems(n.id).filter(x=>x.applied_month).length;
+  if(!await confirmBox('ลบหนังสือ?',`ลบหนังสือ ${esc(n.doc_no)} และรายการสถานี ${noticeItems(n.id).length} รายการ${ap?` (มี ${ap} รายการที่ปรับยอดไปแล้ว — ยอดในเดือนจะไม่ถูกย้อนกลับ)`:''}`,'ลบ'))return;
+  const r=await sb.from('notices').delete().eq('id',n.id);if(r.error){$('nMsg').innerHTML=`<div class="msg err">${esc(dbErr(r.error).message)}</div>`;return}
+  store.notices.delete(n.id);noticeItems(n.id).forEach(x=>store.items.delete(x.id));OPEN_NOTICE=null;closeModal();renderNotices();
+}
+async function viewNoticeFile(){
+  const p=NDRAFT?.file_path;if(!p)return;const{data,error}=await sb.storage.from('awn-docs').createSignedUrl(p,600);
+  if(error||!data){$('nMsg').innerHTML=`<div class="msg err">เปิดไฟล์ไม่ได้: ${esc(error?.message||'')}</div>`;return}
+  const a=document.createElement('a');a.href=data.signedUrl;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
+}
+function fillNoticeRef(v){const sel=$('noticeRef');if(!sel)return;const list=[...store.notices.values()].sort((a,b)=>String(b.doc_date||'').localeCompare(String(a.doc_date||''))).slice(0,80);
+  sel.innerHTML='<option value="">— ไม่ระบุ —</option>'+list.map(n=>`<option value="${n.id}">${esc(n.doc_no)} · ${esc(n.subject).slice(0,40)}</option>`).join('');sel.value=v&&store.notices.has(v)?v:''}
+function siteNoticesHTML(o){
+  if(!V2)return'';const its=[...store.items.values()].filter(x=>x.k===o.k);if(!its.length)return'';
+  return`<h3 style="margin-top:16px">หนังสือที่เกี่ยวข้อง</h3><div class="tbl-wrap"><table><thead><tr><th>เลขที่</th><th>ลงวันที่</th><th>การดำเนินการ</th><th class="r">จำนวน</th><th>วันที่มีผล</th><th>ปรับยอด</th></tr></thead><tbody>${its.map(x=>{const n=store.notices.get(x.notice_id)||{};const[t,q]=itemTypeQty(x);return`<tr><td>${esc(n.doc_no||'')}</td><td>${fmtD(n.doc_date)}</td><td>${ACTIONS[x.action]||''} ${TYPE3[t]}</td><td class="r">${q||''}</td><td>${fmtD(x.eff_date)}</td><td>${x.applied_month?mL(x.applied_month):'รอ'}</td></tr>`}).join('')}</tbody></table></div>`;
+}
+
+/* =====================================================================
+   2) ตัวสร้างรายงาน
+   ===================================================================== */
+const F=(id,label,get,o={})=>Object.assign({id,label,get},o);
+const N0={num:true,sum:true},MONEY={num:true,money:true,sum:true};
+function attrOf(o){const a=store.attrs.get(o.k)||{};const d={in_contract:true,om_by_awn:true,space_by_awn:o.totArea!=='Y',nt_owned_extra:false,repl_from:null,repl_to:null,note:''};
+  const r={};for(const k in d)r[k]=a[k]===null||a[k]===undefined?d[k]:a[k];r._changed=!!store.attrs.get(o.k);return r}
+function stateFor(m){ // returns accessor for month m (end-of-month state)
+  const mi=MONTHS.indexOf(m);
+  if(mi>=0)return{ant:i=>R[i].extra?null:splitAt(R[i],mi),now:i=>R[i].now,st:i=>R[i].st};
+  const s=STATE[m]||STATE[WORK];return{ant:i=>R[i].extra&&m<R[i].from?null:[s.ant[0][i],s.ant[1][i],s.ant[2][i]],now:i=>s.now[i],st:i=>s.st[i]};
+}
+const YN=v=>v?'ใช่':'ไม่';
+const RB_TYPES={
+  sites:{label:'ทะเบียนสถานี (ยอด ณ เดือนที่เลือก)',filters:['month','region','province','ttype','siteStatus','q'],sort:'sc',
+    fields:[F('rg','ภาค',r=>r.o.rg),F('zn','เขต',r=>r.o.zn),F('pv','จังหวัด',r=>r.o.pv),F('lid','LOCATION ID',r=>r.o.lid),F('sc','SITECODE',r=>r.o.sc),F('nm','ชื่อสถานี',r=>r.o.nm),F('an','ARTICLE_NO',r=>r.o.an),F('ad','รายละเอียดเสา',r=>r.o.ad),F('tt','ประเภทเสา',r=>r.o.tt),F('hi','ความสูง (ม.)',r=>r.o.hi,{num:true}),
+      F('tot','Tower ที่เช่า_TOT',r=>r.o.tot,N0),F('now','Tower ปัจจุบัน',r=>r.now,N0),F('nw','ANT AWN',r=>r.a[0],N0),F('mw','Microwave',r=>r.a[1],N0),F('dt','ANT DTAC',r=>r.a[2],N0),F('total','Total ANT',r=>sum(r.a),N0),F('avail','Available Space',r=>availOf(r.o.i,r.a),N0),
+      F('st','สถานะ',r=>r.st),F('status','STATUS',r=>r.o.status),F('lat','LATITUDE',r=>r.o.lat),F('lon','LONGITUDE',r=>r.o.lon),F('inc','อยู่ในสัญญา',r=>YN(r.at.in_contract)),F('om','AWN บำรุงรักษา',r=>YN(r.at.om_by_awn)),F('sp','AWN ให้ใช้พื้นที่',r=>YN(r.at.space_by_awn)),F('ext','เสา NT นอก 11,946',r=>YN(r.at.nt_owned_extra))],
+    def:['rg','pv','sc','nm','tt','now','nw','mw','dt','total','st'],
+    rows(f){const S=stateFor(f.month);const out=[];for(const o of R){const a=S.ant(o.i);if(!a)continue;const r={o,a,now:S.now(o.i),st:S.st(o.i),at:attrOf(o)};out.push(r)}return out},
+    match(r,f){const t=sum(r.a);if(f.siteStatus==='active'&&!t)return false;if(f.siteStatus==='zero'&&t)return false;if(f.siteStatus==='removed'&&!String(r.st).includes('เสารื้อถอน'))return false;if(f.siteStatus==='space'&&!(availOf(r.o.i,r.a)>0))return false;if(f.ttype&&r.o.tt!==f.ttype)return false;return true}},
+  changes:{label:'รายการรื้อถอน / ติดตั้ง',filters:['monthFrom','monthTo','region','province','kind','q'],sort:'month',
+    fields:[F('month','เดือน',r=>mL(r.m),{key:r=>r.m}),F('eff','วันที่มีผล',r=>fmtD(r.eff),{key:r=>r.eff||''}),F('rg','ภาค',r=>r.o.rg),F('pv','จังหวัด',r=>r.o.pv),F('lid','LOCATION ID',r=>r.o.lid),F('sc','SITECODE',r=>r.o.sc),F('nm','ชื่อสถานี',r=>r.o.nm),
+      F('before','ANT ก่อน',r=>r.before,N0),F('rmT','รื้อถอน (รวม)',r=>r.rmT,N0),F('rm0','รื้อ ANT AWN',r=>r.rm?.[0],N0),F('rm1','รื้อ Microwave',r=>r.rm?.[1],N0),F('rm2','รื้อ ANT DTAC',r=>r.rm?.[2],N0),F('insT','ติดตั้ง (รวม)',r=>r.insT,N0),F('ins0','ติดตั้ง ANT AWN',r=>r.ins?.[0],N0),F('ins1','ติดตั้ง Microwave',r=>r.ins?.[1],N0),F('ins2','ติดตั้ง ANT DTAC',r=>r.ins?.[2],N0),
+      F('after','ANT หลัง',r=>r.after,N0),F('tower','เสารื้อถอน',r=>r.tower?'ใช่':''),F('note','หมายเหตุ',r=>r.note),F('doc','เลขที่หนังสือ',r=>r.doc),F('by','ผู้บันทึก',r=>r.by),F('src','ที่มา',r=>r.src)],
+    def:['month','eff','rg','pv','sc','nm','before','rmT','insT','after','note','doc'],
+    rows(f){const out=[];const ms=allMonths().filter(m=>m>=f.monthFrom&&m<=f.monthTo);
+      for(const m of ms){if(MONTHS.includes(m)){const mi=MONTHS.indexOf(m);for(const o of R){const e=o.ev[m];if(!e)continue;const b=splitAt(o,mi-1),a=splitAt(o,mi);out.push({m,o,eff:null,before:b?sum(b):0,rmT:e[0]||0,insT:e[1]||0,after:a?sum(a):0,note:e[2]||'',doc:'',by:'',src:'ไฟล์เดิม'})}}
+        else{const ps=prevMonthState(m),cs=STATE[m];for(const c of changesOf(m)){const i=c.row,o=R[i];const n=c.notice?store.notices.get(c.notice):null;
+          out.push({m,o,eff:c.eff,before:ps.ant[0][i]+ps.ant[1][i]+ps.ant[2][i],rm:c.rm,ins:c.ins,rmT:sum(c.rm||[]),insT:sum(c.ins||[]),after:cs.ant[0][i]+cs.ant[1][i]+cs.ant[2][i],tower:c.tower||c.now===0,note:c.note,doc:n?n.doc_no:'',by:nameOf(c.by),src:{manual:'บันทึกเอง',bulk:'วางจาก Excel',import:'นำเข้าไฟล์',notice:'ตามหนังสือ'}[c.src]||c.src||''})}}}
+      return out},
+    match(r,f){if(f.kind==='rm'&&!r.rmT)return false;if(f.kind==='ins'&&!r.insT)return false;return true}},
+  notices:{label:'ทะเบียนหนังสือ / บันทึก',filters:['dateFrom','dateTo','docType','docStatus','q'],sort:'doc_date',v2:true,
+    fields:[F('doc_no','เลขที่',r=>r.n.doc_no),F('doc_date','ลงวันที่',r=>fmtD(r.n.doc_date),{key:r=>r.n.doc_date||''}),F('recv_date','วันที่รับ',r=>fmtD(r.n.recv_date),{key:r=>r.n.recv_date||''}),F('dir','ทิศทาง',r=>DIRS[r.n.direction]),F('type','ประเภท',r=>DOC_TYPES[r.n.doc_type]||r.n.doc_type),F('subject','เรื่อง',r=>r.n.subject),F('eff','วันที่มีผล',r=>fmtD(r.n.eff_date),{key:r=>r.n.eff_date||''}),F('ref','อ้างถึง',r=>r.n.ref_no),F('due','กำหนดดำเนินการ',r=>fmtD(r.n.due_date),{key:r=>r.n.due_date||''}),F('status','สถานะ',r=>DOC_STATUS[r.n.status]),
+      F('sites','จำนวนสถานี',r=>r.its.length,N0),F('rm','ANT รื้อ/ยกเลิก',r=>sum(r.its.map(x=>sum(x.rm||[]))),N0),F('ins','ANT ติดตั้ง',r=>sum(r.its.map(x=>sum(x.ins||[]))),N0),F('towers','เสารื้อถอน',r=>r.its.filter(x=>x.tower_removed).length,N0),F('applied','ปรับยอดแล้ว',r=>`${r.its.filter(x=>x.applied_month).length}/${r.its.length}`),F('note','หมายเหตุ',r=>r.n.note),F('by','ผู้บันทึก',r=>nameOf(r.n.created_by))],
+    def:['doc_no','doc_date','type','subject','eff','sites','rm','ins','status'],
+    rows(){return[...store.notices.values()].map(n=>({n,its:noticeItems(n.id)}))},
+    match(r,f){const d=r.n.doc_date||'';if(f.dateFrom&&d<f.dateFrom)return false;if(f.dateTo&&d>f.dateTo)return false;if(f.docType&&r.n.doc_type!==f.docType)return false;if(f.docStatus&&r.n.status!==f.docStatus)return false;return true},
+    text:r=>r.n.doc_no+' '+r.n.subject+' '+r.its.map(x=>x.sc).join(' ')},
+  items:{label:'รายการสถานีตามหนังสือ',filters:['dateFrom','dateTo','docType','region','q'],sort:'doc_date',v2:true,
+    fields:[F('doc_no','เลขที่หนังสือ',r=>r.n.doc_no),F('doc_date','ลงวันที่',r=>fmtD(r.n.doc_date),{key:r=>r.n.doc_date||''}),F('type','ประเภทหนังสือ',r=>DOC_TYPES[r.n.doc_type]),F('rg','ภาค',r=>r.o?.rg),F('pv','จังหวัด',r=>r.o?.pv),F('sc','SITECODE',r=>r.it.sc),F('nm','ชื่อสถานี',r=>r.it.site_name||r.o?.nm),F('action','การดำเนินการ',r=>ACTIONS[r.it.action]),F('ant','ประเภท ANT',r=>TYPE3[itemTypeQty(r.it)[0]]),F('qty','จำนวน',r=>itemTypeQty(r.it)[1],N0),F('tower','เสารื้อถอน',r=>r.it.tower_removed?'ใช่':''),F('eff','วันที่มีผล',r=>fmtD(r.it.eff_date),{key:r=>r.it.eff_date||''}),F('applied','ปรับยอดเดือน',r=>r.it.applied_month?mL(r.it.applied_month):'รอ'),F('note','หมายเหตุ',r=>r.it.note)],
+    def:['doc_no','doc_date','rg','pv','sc','nm','action','ant','qty','eff','applied'],
+    rows(){return[...store.items.values()].map(it=>({it,n:store.notices.get(it.notice_id)||{},o:it.k&&KEYIDX.has(it.k)?R[KEYIDX.get(it.k)]:null}))},
+    match(r,f){const d=r.n.doc_date||'';if(f.dateFrom&&d<f.dateFrom)return false;if(f.dateTo&&d>f.dateTo)return false;if(f.docType&&r.n.doc_type!==f.docType)return false;if(f.region.length&&!(r.o&&f.region.includes(r.o.rg)))return false;return true},
+    text:r=>r.it.sc+' '+(r.it.site_name||'')+' '+r.n.doc_no},
+  summary:{label:'สรุปแยกภาค / จังหวัด / ประเภทเสา',filters:['month','groupBy','region'],sort:'g',noText:true,
+    fields:[F('g','กลุ่ม',r=>r.g),F('sites','จำนวนสถานี (มี ANT)',r=>r.sites,N0),F('towers','Tower ปัจจุบัน',r=>r.towers,N0),F('nw','ANT AWN',r=>r.a[0],N0),F('mw','Microwave',r=>r.a[1],N0),F('dt','ANT DTAC',r=>r.a[2],N0),F('total','Total ANT',r=>sum(r.a),N0),F('rm','รื้อถอนในเดือน',r=>r.rm,N0),F('ins','ติดตั้งในเดือน',r=>r.ins,N0),F('avail','Available Space',r=>r.avail,N0)],
+    def:['g','sites','towers','nw','mw','dt','total','rm','ins'],
+    rows(f){const S=stateFor(f.month);const key={rg:o=>o.rg,pv:o=>o.pv,zn:o=>o.zn,tt:o=>o.tt||'-'}[f.groupBy||'rg'];const G=new Map();const mi=MONTHS.indexOf(f.month);const chs=mi<0?new Map(changesOf(f.month).map(c=>[c.row,c])):null;
+      for(const o of R){if(f.region.length&&!f.region.includes(o.rg))continue;const a=S.ant(o.i);if(!a)continue;const g=key(o);const x=G.get(g)||{g,sites:0,towers:0,a:[0,0,0],rm:0,ins:0,avail:0};const t=sum(a);if(t)x.sites++;x.towers+=S.now(o.i)||0;for(let j=0;j<3;j++)x.a[j]+=a[j];x.avail+=availOf(o.i,a)||0;
+        if(mi>=0){const e=o.ev[f.month];if(e){x.rm+=e[0]||0;x.ins+=e[1]||0}}else{const c=chs.get(o.i);if(c){x.rm+=sum(c.rm||[]);x.ins+=sum(c.ins||[])}}G.set(g,x)}
+      return[...G.values()]},match:()=>true},
+  monthly:{label:'สรุปรายเดือน',filters:['monthFrom','monthTo'],sort:'month',noText:true,
+    fields:[F('month','เดือน',r=>mLF(r.m),{key:r=>r.m}),F('towers','Tower',r=>r.t.towers,{num:true}),F('nw','ANT AWN',r=>r.t.nw,{num:true}),F('mw','Microwave',r=>r.t.mw,{num:true}),F('dt','ANT DTAC',r=>r.t.dt,{num:true}),F('total','Total ANT',r=>r.t.total,{num:true}),F('rm','รื้อถอน',r=>r.t.rm,N0),F('ins','ติดตั้งเพิ่ม',r=>r.t.ins,N0),F('srm','Site รื้อถอน',r=>r.t.sitesRm,N0),F('sin','Site ติดตั้ง',r=>r.t.sitesIn,N0),F('chg','เปลี่ยนแปลงจากเดือนก่อน',r=>r.chg,{num:true}),
+      ...REG.map(g=>F('r_'+g,'ภาค '+g,r=>r.t.reg[g],{num:true}))],
+    def:['month','towers','nw','mw','dt','total','rm','ins','chg'],
+    rows(f){const ms=allMonths().filter(m=>m>=f.monthFrom&&m<=f.monthTo);return ms.map(m=>{const t=monthTotals(m);const p=MONTHS.includes(mPrev(m))||STATE[mPrev(m)]?monthTotals(mPrev(m)):null;return{m,t,chg:p?t.total-p.total:null}})},match:()=>true},
+  billing:{label:'ค่าบริการรายเดือนตามสัญญา 2572–2591',filters:['bilFrom','bilTo'],sort:'month',noText:true,v2:true,
+    fields:[F('month','เดือน',r=>mLF(r.mk),{key:r=>r.mk}),F('basis','ฐานข้อมูล',r=>r.basisLabel),F('year','ปีสัญญา',r=>r.year,{num:true}),F('ant','ANT ใช้งาน (เฉลี่ย)',r=>r.antContract,{num:true,dec:2}),F('main','ANT คิดอัตราปกติ',r=>r.mainUnits,{num:true,dec:2}),F('rateA','อัตรา/ANT',r=>r.rA,{num:true,money:true}),F('cMain','ค่าใช้บริการเสา',r=>r.cMain,MONEY),F('cExcess','ส่วนเกิน 88,000',r=>r.cExcess,MONEY),F('cExtra','เสา NT นอก 11,946',r=>r.cExtra,MONEY),F('cRepl','ระหว่างจัดหาทดแทน',r=>r.cRepl,MONEY),F('towerTotal','รวมค่าใช้บริการเสา',r=>r.towerTotal,MONEY),
+      F('omN','เสาคิดค่าบำรุงรักษา',r=>r.towersOM,{num:true,dec:2}),F('om','ค่าบำรุงรักษา',r=>r.om,MONEY),F('spN','พื้นที่คิดค่าพื้นที่',r=>r.sitesSpace,{num:true,dec:2}),F('space','ค่าพื้นที่',r=>r.space,MONEY),F('ntPays','รวม NT ชำระ',r=>r.ntPays,MONEY),F('net','สุทธิ (NT รับ − จ่าย)',r=>r.net,MONEY)],
+    def:['month','ant','cMain','cExcess','towerTotal','om','space','ntPays','net'],
+    rows(f){const a=mkIdx(f.bilFrom),b=mkIdx(f.bilTo);const out=[];for(let i=a;i<=b&&out.length<240;i++)out.push(calcBilling(idxMk(i)));return out},match:()=>true}
+};
+let rbInit=false;
+function rbState(){try{return JSON.parse(localStorage.getItem('awn-rb')||'{}')}catch(e){return{}}}
+function rbSave(st){try{localStorage.setItem('awn-rb',JSON.stringify(st))}catch(e){}}
+function bilMonths(){const a=mkIdx(SETTINGS.start),b=mkIdx(SETTINGS.end);const o=[];for(let i=a;i<=b;i++)o.push(idxMk(i));return o}
+function rbSetup(){
+  if(rbInit)return;rbInit=true;
+  $('rbType').innerHTML=Object.entries(RB_TYPES).map(([k,t])=>`<option value="${k}">${t.label}</option>`).join('');
+  const st=rbState();if(st.type&&RB_TYPES[st.type])$('rbType').value=st.type;
+  $('rbType').onchange=()=>{rbBuildForm(true);rbRender()};
+  ['rbSort','rbDir','rbTitle','rbOrient'].forEach(id=>$(id).addEventListener('change',()=>rbRender(true)));
+  $('rbAll').onclick=()=>{$('rbCols').querySelectorAll('input').forEach(c=>c.checked=true);rbRender(true)};
+  $('rbNone').onclick=()=>{$('rbCols').querySelectorAll('input').forEach(c=>c.checked=false);rbRender(true)};
+  $('rbXlsx').onclick=()=>runTo($('rbMsg'),()=>rbExcel());
+  $('rbPdf').onclick=()=>rbPdf();
+  rbBuildForm(false);
+}
+function rbBuildForm(reset){
+  const tk=$('rbType').value,T=RB_TYPES[tk];const saved=rbState()[tk]||{};
+  $('rbTitle').value=(!reset&&saved.title)||T.label;
+  const ms=allMonths();const msFull=allMonths().filter(m=>m>='2569-01');const bm=bilMonths();
+  const mOpt=(list,v)=>list.map(m=>`<option value="${m}"${m===v?' selected':''}>${mLF(m)}${m===WORK?' (ร่าง)':''}</option>`).join('');
+  const fx=saved.f||{};let h='';
+  for(const f of T.filters){
+    if(f==='month')h+=`<div class="field"><label>ข้อมูล ณ เดือน</label><select data-flt="month">${mOpt(ms.slice().reverse(),fx.month||WORK)}</select></div>`;
+    if(f==='monthFrom')h+=`<div class="field"><label>ตั้งแต่เดือน</label><select data-flt="monthFrom">${mOpt(msFull,fx.monthFrom||msFull[Math.max(0,msFull.length-4)])}</select></div>`;
+    if(f==='monthTo')h+=`<div class="field"><label>ถึงเดือน</label><select data-flt="monthTo">${mOpt(msFull,fx.monthTo||WORK)}</select></div>`;
+    if(f==='bilFrom')h+=`<div class="field"><label>ตั้งแต่เดือน</label><select data-flt="bilFrom">${mOpt(bm,fx.bilFrom||bm[0])}</select></div>`;
+    if(f==='bilTo')h+=`<div class="field"><label>ถึงเดือน</label><select data-flt="bilTo">${mOpt(bm,fx.bilTo||bm[11])}</select></div>`;
+    if(f==='region')h+=`<div class="field"><label>ภาค</label><div class="ms">${REG.map(g=>`<label><input type="checkbox" data-flt="region" value="${g}" ${(fx.region||[]).includes(g)?'checked':''}>${g}</label>`).join('')}</div></div>`;
+    if(f==='province'){const pv=[...new Set(R.map(o=>o.pv))].sort((a,b)=>a.localeCompare(b,'th'));h+=`<div class="field"><label>จังหวัด</label><select data-flt="province"><option value="">ทุกจังหวัด</option>${pv.map(p=>`<option${p===fx.province?' selected':''}>${esc(p)}</option>`).join('')}</select></div>`}
+    if(f==='ttype'){const tt=[...new Set(R.map(o=>o.tt))].filter(Boolean).sort();h+=`<div class="field"><label>ประเภทเสา</label><select data-flt="ttype"><option value="">ทุกประเภท</option>${tt.map(p=>`<option${p===fx.ttype?' selected':''}>${esc(p)}</option>`).join('')}</select></div>`}
+    if(f==='siteStatus')h+=`<div class="field"><label>สถานะสถานี</label><select data-flt="siteStatus">${[['','ทั้งหมด'],['active','มี ANT อยู่'],['zero','ANT = 0'],['removed','เสารื้อถอนแล้ว'],['space','มี Available Space']].map(([k,v])=>`<option value="${k}"${k===(fx.siteStatus||'')?' selected':''}>${v}</option>`).join('')}</select></div>`;
+    if(f==='kind')h+=`<div class="field"><label>รายการ</label><select data-flt="kind">${[['','ทั้งรื้อถอนและติดตั้ง'],['rm','เฉพาะรื้อถอน'],['ins','เฉพาะติดตั้ง']].map(([k,v])=>`<option value="${k}"${k===(fx.kind||'')?' selected':''}>${v}</option>`).join('')}</select></div>`;
+    if(f==='groupBy')h+=`<div class="field"><label>สรุปตาม</label><select data-flt="groupBy">${[['rg','ภาค'],['zn','เขต'],['pv','จังหวัด'],['tt','ประเภทเสา']].map(([k,v])=>`<option value="${k}"${k===(fx.groupBy||'rg')?' selected':''}>${v}</option>`).join('')}</select></div>`;
+    if(f==='dateFrom')h+=`<div class="field"><label>ลงวันที่ ตั้งแต่</label><input type="date" data-flt="dateFrom" value="${fx.dateFrom||''}"></div>`;
+    if(f==='dateTo')h+=`<div class="field"><label>ถึง</label><input type="date" data-flt="dateTo" value="${fx.dateTo||''}"></div>`;
+    if(f==='docType')h+=`<div class="field"><label>ประเภทหนังสือ</label><select data-flt="docType"><option value="">ทุกประเภท</option>${Object.entries(DOC_TYPES).map(([k,v])=>`<option value="${k}"${k===fx.docType?' selected':''}>${v}</option>`).join('')}</select></div>`;
+    if(f==='docStatus')h+=`<div class="field"><label>สถานะ</label><select data-flt="docStatus"><option value="">ทุกสถานะ</option>${Object.entries(DOC_STATUS).map(([k,v])=>`<option value="${k}"${k===fx.docStatus?' selected':''}>${v}</option>`).join('')}</select></div>`;
+    if(f==='q')h+=`<div class="field"><label>ค้นหา</label><input type="search" data-flt="q" value="${esc(fx.q||'')}" placeholder="SITECODE / ชื่อ / เลขที่"></div>`;
+  }
+  $('rbFilters').innerHTML=h;
+  $('rbFilters').querySelectorAll('[data-flt]').forEach(el=>el.addEventListener(el.type==='search'?'input':'change',()=>rbRender(true)));
+  const cols=saved.cols||T.def;
+  $('rbCols').innerHTML=T.fields.map(f=>`<label><input type="checkbox" value="${f.id}" ${cols.includes(f.id)?'checked':''}>${esc(f.label)}</label>`).join('');
+  $('rbCols').querySelectorAll('input').forEach(c=>c.onchange=()=>rbRender(true));
+  $('rbSort').innerHTML=T.fields.map(f=>`<option value="${f.id}"${f.id===(saved.sort||T.sort)?' selected':''}>${esc(f.label)}</option>`).join('');
+  $('rbDir').value=saved.dir||'asc';
+}
+function rbFilters(){const f={region:[]};$('rbFilters').querySelectorAll('[data-flt]').forEach(el=>{const k=el.dataset.flt;if(k==='region'){if(el.checked)f.region.push(el.value)}else f[k]=el.value});
+  if(f.monthFrom&&f.monthTo&&f.monthFrom>f.monthTo)[f.monthFrom,f.monthTo]=[f.monthTo,f.monthFrom];if(f.bilFrom&&f.bilTo&&f.bilFrom>f.bilTo)[f.bilFrom,f.bilTo]=[f.bilTo,f.bilFrom];return f}
+function rbCompute(){
+  const tk=$('rbType').value,T=RB_TYPES[tk];const f=rbFilters();
+  const colIds=[...$('rbCols').querySelectorAll('input:checked')].map(c=>c.value);const cols=T.fields.filter(x=>colIds.includes(x.id));
+  if(T.v2&&!V2)return{T,f,cols,rows:[],err:'ยังไม่ได้รัน schema_v2.sql'};
+  let rows=T.rows(f).filter(r=>T.match(r,f));
+  if(f.region&&f.region.length&&T.filters.includes('region')&&tk!=='summary'&&tk!=='items')rows=rows.filter(r=>r.o&&f.region.includes(r.o.rg));
+  if(f.province)rows=rows.filter(r=>r.o&&r.o.pv===f.province);
+  if(f.q&&!T.noText){const q=f.q.toLowerCase();rows=rows.filter(r=>(T.text?T.text(r):(r.o?r.o.sc+' '+r.o.nm+' '+r.o.lid+' '+r.o.pv:'')+' '+(r.note||'')+' '+(r.doc||'')).toLowerCase().includes(q))}
+  const sf=T.fields.find(x=>x.id===$('rbSort').value)||T.fields[0];const dir=$('rbDir').value==='desc'?-1:1;const key=sf.key||sf.get;
+  rows.sort((a,b)=>{const x=key(a),y=key(b);if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return-1;return(typeof x==='number'&&typeof y==='number'?x-y:String(x).localeCompare(String(y),'th'))*dir});
+  return{T,f,cols,rows};
+}
+function rbSubtitle(T,f){const p=[];if(f.month)p.push('ข้อมูล ณ '+mLF(f.month));if(f.monthFrom)p.push(`${mLF(f.monthFrom)} – ${mLF(f.monthTo)}`);if(f.bilFrom)p.push(`${mLF(f.bilFrom)} – ${mLF(f.bilTo)}`);
+  if(f.dateFrom||f.dateTo)p.push(`ลงวันที่ ${f.dateFrom?fmtDL(f.dateFrom):'…'} – ${f.dateTo?fmtDL(f.dateTo):'…'}`);if(f.region&&f.region.length)p.push('ภาค '+f.region.join(', '));if(f.province)p.push('จ.'+f.province);
+  if(f.docType)p.push(DOC_TYPES[f.docType]);if(f.docStatus)p.push(DOC_STATUS[f.docStatus]);if(f.q)p.push(`ค้นหา “${f.q}”`);return p.join(' · ')}
+function cellVal(c,r){const v=c.get(r);return v==null?'':v}
+function fmtCell(c,v){if(v===''||v==null)return'';if(c.num&&typeof v==='number')return c.money?v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}):c.dec?v.toLocaleString('en-US',{maximumFractionDigits:c.dec}):fmt(v);return esc(v)}
+function rbRender(save){
+  if(!$('v-reports')||!STATE[WORK])return;rbSetup();
+  const{T,f,cols,rows,err}=rbCompute();
+  if(save){const st=rbState();st.type=$('rbType').value;st[$('rbType').value]={title:$('rbTitle').value,f,cols:cols.map(c=>c.id),sort:$('rbSort').value,dir:$('rbDir').value};rbSave(st)}
+  if(err){$('rbPreview').innerHTML=`<tbody><tr><td class="msg warn">${err}</td></tr></tbody>`;$('rbCount').textContent='';return}
+  $('rbCount').textContent=`${fmt(rows.length)} แถว · ${cols.length} คอลัมน์`;
+  if(!cols.length){$('rbPreview').innerHTML='<tbody><tr><td class="muted" style="padding:20px">เลือกคอลัมน์อย่างน้อย 1 คอลัมน์</td></tr></tbody>';return}
+  let h=`<thead><tr>${cols.map(c=>`<th class="${c.num?'r':''}">${esc(c.label)}</th>`).join('')}</tr></thead><tbody>`;
+  for(const r of rows.slice(0,200))h+=`<tr>${cols.map(c=>`<td class="${c.num?'r num':''}">${fmtCell(c,cellVal(c,r))}</td>`).join('')}</tr>`;
+  if(rows.length&&cols.some(c=>c.sum))h+=`<tr class="sum">${cols.map((c,ix)=>`<td class="${c.num?'r num':''}">${c.sum?fmtCell(c,sum(rows.map(r=>+cellVal(c,r)||0))):ix===0?'รวม':''}</td>`).join('')}</tr>`;
+  if(!rows.length)h+=`<tr><td colspan="${cols.length}" class="muted" style="text-align:center;padding:20px">ไม่มีข้อมูลตามเงื่อนไข</td></tr>`;
+  $('rbPreview').innerHTML=h+'</tbody>';
+}
+async function runTo(el,fn){
+  el.innerHTML='<div class="msg info">กำลังสร้างไฟล์…</div>';
+  try{await loadExcel();const{wb,name}=await fn();const buf=await wb.xlsx.writeBuffer();await downloads.save({filename:name,data:new Blob([buf])});el.innerHTML=`<div class="msg ok">ดาวน์โหลด ${esc(name)} แล้ว</div>`}
+  catch(e){el.innerHTML=`<div class="msg err">สร้างไฟล์ไม่สำเร็จ: ${esc(e.message||e)}</div>`}
+}
+function xlsTable(ws,title,sub,cols,rows,startRow){
+  let r0=startRow||1;
+  ws.getCell(`A${r0}`).value=title;ws.getCell(`A${r0}`).font={bold:true,size:14,name:'Tahoma'};
+  ws.getCell(`A${r0+1}`).value=sub;ws.getCell(`A${r0+1}`).font={size:10,name:'Tahoma',color:{argb:'FF555555'}};
+  const hr=r0+3;const hrow=ws.getRow(hr);cols.forEach((c,j)=>hrow.getCell(j+1).value=c.label);styleHeader(hrow,32);
+  rows.forEach((r,ix)=>{const row=ws.getRow(hr+1+ix);cols.forEach((c,j)=>{const v=cellVal(c,r);const cell=row.getCell(j+1);cell.value=v===''?null:v;if(c.num)cell.numFmt=c.money?'#,##0.00':c.dec?'#,##0.##':'#,##0';cell.font={name:'Tahoma',size:10}})});
+  const last=hr+rows.length;
+  if(rows.length&&cols.some(c=>c.sum)){const row=ws.getRow(last+1);cols.forEach((c,j)=>{const cell=row.getCell(j+1);if(c.sum){const L=colL(j+1);cell.value={formula:`SUBTOTAL(9,${L}${hr+1}:${L}${last})`,result:sum(rows.map(r=>+cellVal(c,r)||0))};cell.numFmt=c.money?'#,##0.00':'#,##0'}else if(j===0)cell.value='รวม';cell.font={bold:true,name:'Tahoma',size:10};cell.border={top:thin}})}
+  ws.autoFilter={from:{row:hr,column:1},to:{row:Math.max(hr,last),column:cols.length}};
+  ws.views=[{state:'frozen',ySplit:hr}];
+  cols.forEach((c,j)=>{const w=Math.max(c.label.length,...rows.slice(0,300).map(r=>String(fmtCell(c,cellVal(c,r))).length));ws.getColumn(j+1).width=Math.min(48,Math.max(8,w*1.1+2))});
+  return last+2;
+}
+async function rbExcel(){
+  const{T,f,cols,rows,err}=rbCompute();if(err)throw new Error(err);if(!cols.length)throw new Error('ยังไม่ได้เลือกคอลัมน์');
+  const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet('รายงาน');const title=$('rbTitle').value||T.label;
+  xlsTable(ws,title,rbSubtitle(T,f)+` · พิมพ์ ${new Date().toLocaleString('th-TH')} โดย ${ME?.name||ME?.email||''}`,cols,rows);
+  return{wb,name:`${title.replace(/[\\/:*?"<>|]/g,'-')}.xlsx`};
+}
+function printHTML(title,sub,body,orient){
+  const fr=document.createElement('iframe');fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0';document.body.appendChild(fr);
+  const d=fr.contentDocument;d.open();
+  d.write(`<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><title>${esc(title)}</title><link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;600&display=swap" rel="stylesheet">
+<style>@page{size:A4 ${orient||'landscape'};margin:11mm}body{font-family:"IBM Plex Sans Thai",Tahoma,sans-serif;color:#111;font-size:${orient==='portrait'?9.5:10}px;margin:0}
+h1{font-size:15px;margin:0 0 2px}.sub{color:#555;font-size:10.5px;margin-bottom:10px}table{border-collapse:collapse;width:100%;margin-bottom:12px}thead{display:table-header-group}tr{page-break-inside:avoid}
+th,td{border:1px solid #bbb;padding:3px 5px;text-align:left;vertical-align:top}th{background:#ddebf7;font-weight:600}td.r,th.r{text-align:right;white-space:nowrap}tr.sum td{font-weight:600;background:#f3f3f3}
+h2{font-size:12.5px;margin:12px 0 5px}.foot{color:#777;font-size:9px;margin-top:6px}</style></head><body><h1>${esc(title)}</h1><div class="sub">${esc(sub)}</div>${body}<div class="foot">พิมพ์จากระบบติดตาม ANT (AWN) · ${new Date().toLocaleString('th-TH')} · ${esc(ME?.name||ME?.email||'')}</div></body></html>`);
+  d.close();
+  const go=()=>{try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){}setTimeout(()=>fr.remove(),60000)};
+  const ready=()=>{(fr.contentDocument.fonts?fr.contentDocument.fonts.ready:Promise.resolve()).then(()=>setTimeout(go,150))};
+  if(fr.contentDocument.readyState==='complete')ready();else fr.onload=ready;
+}
+function htmlTable(cols,rows){
+  let h=`<table><thead><tr>${cols.map(c=>`<th class="${c.num?'r':''}">${esc(c.label)}</th>`).join('')}</tr></thead><tbody>`;
+  for(const r of rows)h+=`<tr>${cols.map(c=>`<td class="${c.num?'r':''}">${fmtCell(c,cellVal(c,r))}</td>`).join('')}</tr>`;
+  if(rows.length&&cols.some(c=>c.sum))h+=`<tr class="sum">${cols.map((c,ix)=>`<td class="${c.num?'r':''}">${c.sum?fmtCell(c,sum(rows.map(r=>+cellVal(c,r)||0))):ix===0?'รวม':''}</td>`).join('')}</tr>`;
+  return h+'</tbody></table>';
+}
+function rbPdf(){
+  const{T,f,cols,rows,err}=rbCompute();if(err){$('rbMsg').innerHTML=`<div class="msg err">${err}</div>`;return}
+  if(!cols.length){$('rbMsg').innerHTML='<div class="msg err">ยังไม่ได้เลือกคอลัมน์</div>';return}
+  if(rows.length>5000){$('rbMsg').innerHTML=`<div class="msg warn">มี ${fmt(rows.length)} แถว — PDF จำกัด 5,000 แถว กรองข้อมูลให้น้อยลง หรือใช้ Excel</div>`;return}
+  printHTML($('rbTitle').value||T.label,rbSubtitle(T,f),htmlTable(cols,rows),$('rbOrient').value);
+  $('rbMsg').innerHTML='<div class="msg info">เปิดหน้าพิมพ์แล้ว — เลือกเครื่องพิมพ์ <b>“บันทึกเป็น PDF / Save as PDF”</b> แล้วกดบันทึก</div>';
+}
+
+/* =====================================================================
+   3) ค่าบริการตามสัญญา 2572–2591
+   ===================================================================== */
+function lastActualMonth(){return CLOSED.length?CLOSED[CLOSED.length-1]:BASE}
+function calcBilling(mk,opts){
+  const S=SETTINGS;const yi=Math.max(0,Math.floor((mkIdx(mk)-mkIdx(S.start))/12));const fT=Math.pow(1+(+S.esc_tower||0),yi),fS=Math.pow(1+(+S.esc_service||0),yi);
+  const rA=S.rate_ant*fT,rX=S.rate_excess*fT,rN=S.rate_extra_nt*fT,rR=S.rate_repl*fT,rOM=S.rate_om*fS,rSP=S.rate_space*fS;
+  const D=mkDays(mk),ms=mkStartIso(mk),me=mkEndIso(mk);const ct=S.count_types||[true,true,true];
+  const actual=allMonths().includes(mk)&&!MONTHS.includes(mk);
+  const basisM=actual?mPrev(mk):lastActualMonth();
+  const P=actual?prevMonthState(mk):(STATE[basisM]||base);
+  const chs=actual?new Map(changesOf(mk).map(c=>[c.row,c])):new Map();
+  let antNormal=0,antRepl=0,antExtra=0,antOut=0,towersOM=0;const space=new Map();const adj=[];const detail=opts&&opts.detail?[]:null;
+  const cnt=a=>(ct[0]?a[0]:0)+(ct[1]?a[1]:0)+(ct[2]?a[2]:0);
+  for(const o of R){const i=o.i;
+    if(o.extra&&o.from>mk)continue;
+    const a0=o.extra&&o.from===mk?(o.init||[0,0,0]):[P.ant[0][i],P.ant[1][i],P.ant[2][i]];const t0=o.extra&&o.from===mk?(o.nowInit||0):P.now[i];
+    const c=chs.get(i);let d=1,a1=a0,t1=t0;
+    if(c){const e=c.eff&&c.eff>=ms&&c.eff<=me?+c.eff.slice(8,10):(c.eff&&c.eff>me?D+1:1);d=e;a1=a0.map((v,j)=>v-(c.rm?.[j]||0)+(c.ins?.[j]||0));t1=c.now!=null?c.now:(c.tower?0:t0)}
+    const wB=(d-1)/D,wA=(D-d+1)/D;const A=cnt(a0)*wB+cnt(a1)*wA;const T=t0*wB+t1*wA;
+    if(!A&&!T&&!c)continue;
+    const at=attrOf(o);
+    let fr=0;if(at.repl_from&&at.repl_from<=me&&(!at.repl_to||at.repl_to>=ms)){const s=at.repl_from>ms?+at.repl_from.slice(8,10):1;const e2=at.repl_to&&at.repl_to<me?+at.repl_to.slice(8,10):D;fr=Math.max(0,e2-s+1)/D}
+    let cls='normal';
+    if(at.nt_owned_extra){antExtra+=A;cls='extra'}else if(!at.in_contract){antOut+=A;cls='out'}else{antRepl+=A*fr;antNormal+=A*(1-fr)}
+    const omT=at.in_contract&&at.om_by_awn?T*(1-fr):0;towersOM+=omT;
+    let spP=0;if(at.in_contract&&at.space_by_awn){spP=(((d-1)*(t0>0?1:0)+(D-d+1)*(t1>0?1:0))/D)*(1-fr);const k=String(o.lid);space.set(k,Math.max(space.get(k)||0,spP))}
+    if(c&&(cnt(a0)!==cnt(a1)||t0!==t1)){const days=D-d+1;const dA=cnt(a1)-cnt(a0),dT=t1-t0;
+      adj.push({o,c,eff:c.eff,days,dA,dT,omAmt:at.in_contract&&at.om_by_awn?dT*rOM*days/D:0,spAmt:at.in_contract&&at.space_by_awn&&((t0>0)!==(t1>0))?(t1>0?1:-1)*rSP*days/D:0,antAmt:dA*(cls==='extra'?rN:rA)*days/D,cls,notice:c.notice?store.notices.get(c.notice):null})}
+    if(detail)detail.push({o,at,A,T,fr,cls,omAmt:omT*rOM,spP})}
+  const sitesSpace=[...space.values()].reduce((x,y)=>x+y,0);
+  const contractVol=antNormal+antRepl;const minA=+S.min_ant||0;
+  const mainUnits=Math.max(0,minA-antRepl);const excess=Math.max(0,contractVol-minA);
+  const cMain=mainUnits*rA,cExcess=excess*rX,cExtra=antExtra*rN,cRepl=antRepl*rR;const towerTotal=cMain+cExcess+cExtra+cRepl;
+  const om=towersOM*rOM,sp=sitesSpace*rSP,ntPays=om+sp;
+  const res={mk,year:yi+1,actual,basisM,basisLabel:actual?'ข้อมูลจริง':`ประมาณการจาก ${mL(basisM)}`,D,fT,fS,rA,rX,rN,rR,rOM,rSP,antNormal,antRepl,antExtra,antOut,antContract:contractVol,minA,mainUnits,excess,cMain,cExcess,cExtra,cRepl,towerTotal,towersOM,sitesSpace,om,space:sp,ntPays,net:towerTotal-ntPays,vat:+S.vat||0,adj,detail};
+  // shortfall vs minimum (informational)
+  res.shortfall=Math.max(0,minA-contractVol);
+  return res;
+}
+let bilInit=false;
+function money(v){return(v||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function num2(v){return(v||0).toLocaleString('en-US',{maximumFractionDigits:2})}
+function initBilling(){
+  if(bilInit)return;bilInit=true;
+  const bm=bilMonths();const sel=$('bilMonth');sel.innerHTML=bm.map(m=>`<option value="${m}">${mLF(m)}</option>`).join('');
+  const now=new Date();const curMk=`${now.getFullYear()+543}-${pad2(now.getMonth()+1)}`;sel.value=bm.includes(curMk)?curMk:bm[0];
+  sel.onchange=renderBilling;$('attrQ').addEventListener('input',renderAttrs);$('attrF').addEventListener('change',renderAttrs);
+  $('bilXlsx').onclick=()=>runTo($('bilMsg')||$('rbMsg'),()=>billingExcel());$('bilPdf').onclick=billingPdf;
+  $('attrApply').onclick=applyAttrPaste;
+  const bilMsg=document.createElement('div');bilMsg.id='bilMsg';$('bilKpis').before(bilMsg);
+}
+function renderBilling(){
+  if(!$('v-billing')||!STATE[WORK])return;initBilling();
+  if(!$('v-billing').classList.contains('on'))return;
+  if(needV2($('bilKpis'))){$('bilIn').innerHTML='';$('bilOut').innerHTML='';return}
+  const B=calcBilling($('bilMonth').value);
+  $('bilBasis').textContent=B.basisLabel+(B.actual?'':' (ยังไม่ถึงเดือนนี้)');$('bilBasis').className='badge '+(B.actual?'good':'warn');
+  const k=(l,v,d,c)=>`<div class="card kpi"${c?` style="border-color:${c}"`:''}><div class="lbl">${l}</div><div class="val num" style="font-size:22px">${v}</div><div class="dl">${d||''}</div></div>`;
+  $('bilKpis').innerHTML=k('ANT ใช้งานจริง (ตามสัญญา)',num2(B.antContract),B.shortfall>0?`<span class="neg">ต่ำกว่าขั้นต่ำ ${fmt(Math.round(B.shortfall))}</span> — คิดขั้นต่ำ ${fmt(B.minA)}`:`<span class="pos">เกินขั้นต่ำ ${fmt(Math.round(B.excess))}</span>`)
+    +k('NT เรียกเก็บ (ข้อ 5)',money(B.towerTotal),'ไม่รวม VAT')+k('NT ชำระ (ข้อ 8)',money(B.ntPays),'ไม่รวม VAT')+k('สุทธิ NT ได้รับ',money(B.net),`ปีสัญญาที่ ${B.year} · อัตรา ×${B.fT.toFixed(4)}`,'var(--accent)');
+  const line=(l,q,r,a,cls)=>`<tr${cls?` class="${cls}"`:''}><td style="white-space:normal">${l}</td><td class="money">${q==null?'':num2(q)}</td><td class="money">${r==null?'':money(r)}</td><td class="money">${money(a)}</td></tr>`;
+  const head='<thead><tr><th>รายการ</th><th class="r">จำนวน</th><th class="r">อัตรา (บาท)</th><th class="r">จำนวนเงิน (บาท)</th></tr></thead>';
+  $('bilIn').innerHTML=head+'<tbody>'+line(`ค่าใช้บริการเสา ปริมาณตามสัญญา (ขั้นต่ำ ${fmt(B.minA)} ANT) <small class="muted">ข้อ 5.1</small>`,B.mainUnits,B.rA,B.cMain)
+    +line('ส่วนที่เกิน 88,000 ANT บนเสา 11,946 ต้น <small class="muted">ข้อ 5.1.1(1)</small>',B.excess,B.rX,B.cExcess)
+    +line('ติดตั้งบนเสา NT นอกเหนือ 11,946 ต้น <small class="muted">ข้อ 5.1.1(2)</small>',B.antExtra,B.rN,B.cExtra)
+    +line('ANT ระหว่างจัดหาเสา/พื้นที่ทดแทน <small class="muted">ข้อ 5.1.2</small>',B.antRepl,B.rR,B.cRepl)
+    +line('<b>รวม (ไม่รวม VAT)</b>',null,null,B.towerTotal,'sum')+line(`VAT ${(B.vat*100).toFixed(0)}%`,null,null,B.towerTotal*B.vat)+line('<b>รวมทั้งสิ้น</b>',null,null,B.towerTotal*(1+B.vat),'sum')+'</tbody>';
+  $('bilOut').innerHTML=head+'<tbody>'+line('ค่าบริการบำรุงรักษา (ต่อเสา) <small class="muted">ข้อ 8.1(1)</small>',B.towersOM,B.rOM,B.om)
+    +line('ค่าบริการให้ใช้พื้นที่ (ต่อพื้นที่บริการ) <small class="muted">ข้อ 8.1(2) · ไม่คิดเสาในพื้นที่ NT</small>',B.sitesSpace,B.rSP,B.space)
+    +line('<b>รวม (ไม่รวม VAT)</b>',null,null,B.ntPays,'sum')+line(`VAT ${(B.vat*100).toFixed(0)}%`,null,null,B.ntPays*B.vat)+line('<b>รวมทั้งสิ้น</b>',null,null,B.ntPays*(1+B.vat),'sum')+'</tbody>';
+  // adjustments
+  let h='<thead><tr><th>SITECODE</th><th>ชื่อสถานี</th><th>วันที่มีผล</th><th class="r">วัน</th><th class="r">± ANT</th><th class="r">± เสา</th><th>เอกสาร</th><th class="r">ค่าบำรุงรักษา</th><th class="r">ค่าพื้นที่</th><th>หนังสือ</th></tr></thead><tbody>';
+  for(const a of B.adj){const t=a.dT<0||a.spAmt<0?'ใบลดหนี้':a.dT>0||a.spAmt>0?'ใบเพิ่มหนี้':(a.dA<0?'ลด ANT':'เพิ่ม ANT');h+=`<tr><td><b>${esc(a.o.sc)}</b></td><td>${esc(a.o.nm)}</td><td>${a.eff?fmtD(a.eff):'ต้นเดือน'}</td><td class="r">${a.days}</td><td class="r">${a.dA>0?'+':''}${a.dA||''}</td><td class="r">${a.dT>0?'+':''}${a.dT||''}</td><td><span class="badge ${t==='ใบลดหนี้'?'bad':t==='ใบเพิ่มหนี้'?'good':''}">${t}</span></td><td class="money">${a.omAmt?money(a.omAmt):''}</td><td class="money">${a.spAmt?money(a.spAmt):''}</td><td>${esc(a.notice?.doc_no||'')}</td></tr>`}
+  if(!B.adj.length)h+=`<tr><td colspan="10" class="muted" style="text-align:center;padding:18px">${B.actual?'ไม่มีรายการเปลี่ยนแปลงในเดือนนี้':'เดือนนี้ยังไม่มีข้อมูลจริง — ใช้ยอดล่าสุดประมาณการ'}</td></tr>`;
+  else if(B.shortfall>0)h+=`<tr><td colspan="10" class="muted" style="white-space:normal">หมายเหตุ: จำนวน ANT ยังต่ำกว่าขั้นต่ำ ${fmt(B.minA)} การรื้อถอน ANT จึงไม่ทำให้ค่าใช้บริการเสาลดลง (คิดขั้นต่ำตามข้อ 5.1)</td></tr>`;
+  $('bilAdj').innerHTML=h+'</tbody>';
+  // years
+  const P=calcBilling(SETTINGS.start);let y='<thead><tr><th>ปีสัญญา</th><th>ปี พ.ศ.</th><th class="r">อัตรา/ANT</th><th class="r">ค่าใช้บริการเสา/ปี</th><th class="r">ค่าบำรุงรักษา/ปี</th><th class="r">ค่าพื้นที่/ปี</th><th class="r">สุทธิ NT ได้รับ/ปี</th></tr></thead><tbody>';let tot=[0,0,0,0];
+  const y0=+SETTINGS.start.slice(0,4),y1=+SETTINGS.end.slice(0,4);
+  for(let yr=y0;yr<=y1;yr++){const i=yr-y0;const fT=Math.pow(1+(+SETTINGS.esc_tower||0),i),fS=Math.pow(1+(+SETTINGS.esc_service||0),i);const tw=(P.cMain+P.cExcess+P.cExtra+P.cRepl)/P.fT*fT*12,om=P.om/P.fS*fS*12,sp=P.space/P.fS*fS*12;tot[0]+=tw;tot[1]+=om;tot[2]+=sp;tot[3]+=tw-om-sp;
+    y+=`<tr><td>${i+1}</td><td>${yr}</td><td class="money">${money(SETTINGS.rate_ant*fT)}</td><td class="money">${money(tw)}</td><td class="money">${money(om)}</td><td class="money">${money(sp)}</td><td class="money"><b>${money(tw-om-sp)}</b></td></tr>`}
+  y+=`<tr class="sum"><td colspan="3">รวม 20 ปี</td><td class="money">${money(tot[0])}</td><td class="money">${money(tot[1])}</td><td class="money">${money(tot[2])}</td><td class="money">${money(tot[3])}</td></tr></tbody>`;
+  $('bilYears').innerHTML=y;
+  renderAttrs();renderSettings();
+}
+let attrPage=0;
+function renderAttrs(){
+  if(!V2||!$('tblAttr'))return;const q=$('attrQ').value.trim().toLowerCase(),f=$('attrF').value;const ad=isAdmin();
+  const nSpaceOff=R.filter(o=>!attrOf(o).space_by_awn).length;
+  $('attrInfo').textContent=`ค่าตั้งต้น: ทุกสถานีอยู่ในสัญญา · AWN บำรุงรักษาทุกเสา · คิดค่าพื้นที่ทุกสถานียกเว้นที่ตั้งในพื้นที่ NT/TOT · ปรับแล้ว ${fmt(store.attrs.size)} สถานี · ไม่คิดค่าพื้นที่ ${fmt(nSpaceOff)} สถานี`;
+  const list=R.filter(o=>{const a=attrOf(o);if(f==='changed'&&!a._changed)return false;if(f==='repl'&&!a.repl_from)return false;if(f==='nospace'&&a.space_by_awn)return false;if(f==='noom'&&a.om_by_awn)return false;if(f==='extra'&&!a.nt_owned_extra)return false;if(f==='out'&&a.in_contract)return false;if(q&&!o.key.includes(q))return false;return true});
+  const show=list.slice(0,150);const s=STATE[WORK];
+  const cb=(o,field,v)=>ad?`<input type="checkbox" data-k="${esc(o.k)}" data-a="${field}" ${v?'checked':''}>`:`<span class="${v?'chk-on':'chk-off'}">${v?'✓':'–'}</span>`;
+  let h='<thead><tr><th>SITECODE</th><th>ชื่อสถานี</th><th>ภาค</th><th class="r">เสา</th><th class="r">ANT</th><th>ในสัญญา</th><th>AWN บำรุงรักษา</th><th>AWN ให้ใช้พื้นที่</th><th>เสา NT นอก 11,946</th><th>เริ่มจัดหาทดแทน</th><th>เปิดใช้ทดแทน</th></tr></thead><tbody>';
+  for(const o of show){const a=attrOf(o);const i=o.i;h+=`<tr${a._changed?' style="background:var(--accent-soft)"':''}><td><b>${esc(o.sc)}</b></td><td>${esc(o.nm)}${o.totArea==='Y'?' <span class="badge">พื้นที่ NT</span>':''}</td><td>${o.rg}</td><td class="r">${s.now[i]}</td><td class="r">${s.ant[0][i]+s.ant[1][i]+s.ant[2][i]}</td><td>${cb(o,'in_contract',a.in_contract)}</td><td>${cb(o,'om_by_awn',a.om_by_awn)}</td><td>${cb(o,'space_by_awn',a.space_by_awn)}</td><td>${cb(o,'nt_owned_extra',a.nt_owned_extra)}</td>
+    <td>${ad?`<input type="date" data-k="${esc(o.k)}" data-a="repl_from" value="${a.repl_from||''}">`:fmtD(a.repl_from)}</td><td>${ad?`<input type="date" data-k="${esc(o.k)}" data-a="repl_to" value="${a.repl_to||''}">`:fmtD(a.repl_to)}</td></tr>`}
+  if(list.length>show.length)h+=`<tr><td colspan="11" class="muted">แสดง 150 จาก ${fmt(list.length)} สถานี — ค้นหาเพื่อกรอง</td></tr>`;
+  if(!list.length)h+='<tr><td colspan="11" class="muted" style="text-align:center;padding:16px">ไม่พบสถานี</td></tr>';
+  $('tblAttr').innerHTML=h+'</tbody>';
+  if(ad)$('tblAttr').querySelectorAll('[data-a]').forEach(el=>el.onchange=async()=>{const o=R[KEYIDX.get(el.dataset.k)];const a=attrOf(o);const row={k:o.k,in_contract:a.in_contract,om_by_awn:a.om_by_awn,space_by_awn:a.space_by_awn,nt_owned_extra:a.nt_owned_extra,repl_from:a.repl_from,repl_to:a.repl_to,note:a.note||''};
+    row[el.dataset.a]=el.type==='checkbox'?el.checked:(el.value||null);const r=await sb.from('site_attrs').upsert(row,{onConflict:'k'});if(r.error){alertMsg(dbErr(r.error).message);return}store.attrs.set(o.k,row);renderBilling()});
+}
+function alertMsg(m){const el=$('bilMsg');if(el)el.innerHTML=`<div class="msg err">${esc(m)}</div>`}
+async function applyAttrPaste(){
+  const lines=$('attrPaste').value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);const rows=[],bad=[];const yn=v=>{v=String(v||'').trim().toUpperCase();return v===''?undefined:['Y','YES','1','ใช่','TRUE','✓'].includes(v)};
+  for(const l of lines){const c=l.split('\t');if(/^site/i.test(c[0]))continue;const o=rowByCode(c[0]);if(!o){bad.push(c[0]);continue}const a=attrOf(o);
+    const row={k:o.k,in_contract:a.in_contract,om_by_awn:a.om_by_awn,space_by_awn:a.space_by_awn,nt_owned_extra:a.nt_owned_extra,repl_from:a.repl_from,repl_to:a.repl_to,note:a.note||''};
+    [['in_contract',1],['om_by_awn',2],['space_by_awn',3],['nt_owned_extra',4]].forEach(([k,j])=>{const v=yn(c[j]);if(v!==undefined)row[k]=v});
+    if(c[5])row.repl_from=parseDateAny(c[5]);if(c[6])row.repl_to=parseDateAny(c[6]);rows.push(row)}
+  if(!rows.length){$('attrMsg').innerHTML=`<div class="msg err">ไม่มีแถวที่ใช้ได้${bad.length?' · ไม่พบ: '+esc(bad.join(', ')):''}</div>`;return}
+  for(let i=0;i<rows.length;i+=500){const r=await sb.from('site_attrs').upsert(rows.slice(i,i+500),{onConflict:'k'});if(r.error){$('attrMsg').innerHTML=`<div class="msg err">${esc(dbErr(r.error).message)}</div>`;return}}
+  rows.forEach(r=>store.attrs.set(r.k,r));$('attrPaste').value='';$('attrMsg').innerHTML=`<div class="msg ok">บันทึก ${rows.length} สถานี${bad.length?` · ไม่พบ: ${esc(bad.join(', '))}`:''}</div>`;renderBilling();
+}
+const SET_FIELDS=[['min_ant','ปริมาณขั้นต่ำตามสัญญา (ANT)','ข้อ 4.1'],['contract_towers','จำนวนเสาตามสัญญา (ต้น)','ข้อ 4.1'],['rate_ant','ค่าใช้บริการเสา (บาท/ANT/เดือน)','ข้อ 5.1'],['rate_excess','ส่วนเกิน 88,000 (บาท/ANT/เดือน)','ข้อ 5.1.1(1)'],['rate_extra_nt','เสา NT นอก 11,946 (บาท/ANT/เดือน)','ข้อ 5.1.1(2)'],['rate_repl','ระหว่างจัดหาทดแทน (บาท/ANT/เดือน)','ข้อ 5.1.2'],['esc_tower','ปรับขึ้นค่าใช้บริการเสา (ต่อปี)','ข้อ 5.1.2 วรรคท้าย'],['rate_om','ค่าบำรุงรักษา (บาท/เสา/เดือน)','ข้อ 8.1(1)'],['rate_space','ค่าพื้นที่ (บาท/พื้นที่/เดือน)','ข้อ 8.1(2)'],['esc_service','ปรับขึ้นค่าบำรุงรักษา/พื้นที่ (ต่อปี)','ข้อ 8.2'],['vat','ภาษีมูลค่าเพิ่ม','']];
+function renderSettings(){
+  if(!$('setBody'))return;const ad=isAdmin();const S=SETTINGS;
+  $('setBody').innerHTML=`<div class="fgrid">${SET_FIELDS.map(([k,l,ref])=>`<div class="field"><label>${l} <small class="muted">${ref}</small></label><input type="number" step="any" data-set="${k}" value="${S[k]}" ${ad?'':'disabled'}></div>`).join('')}
+    <div class="field"><label>เริ่มสัญญา (เดือน)</label><input type="text" data-set="start" value="${S.start}" ${ad?'':'disabled'}></div><div class="field"><label>สิ้นสุดสัญญา (เดือน)</label><input type="text" data-set="end" value="${S.end}" ${ad?'':'disabled'}></div></div>
+    <div class="field"><label>นับเป็นปริมาณการใช้งาน (ANT)</label><div class="ms">${TYPE3.map((t,j)=>`<label><input type="checkbox" data-ct="${j}" ${S.count_types?.[j]!==false?'checked':''} ${ad?'':'disabled'}>${t}</label>`).join('')}</div></div>
+    ${ad?'<div class="row"><button class="btn pri" id="setSave">บันทึกอัตรา</button><button class="btn" id="setReset">คืนค่าตามสัญญา</button><span id="setMsg"></span></div>':'<p class="muted" style="font-size:12.5px">แก้ไขได้เฉพาะผู้ดูแลระบบ</p>'}`;
+  if(!ad)return;
+  const save=async data=>{const r=await sb.from('contract_settings').update({data}).eq('id',true);if(r.error){$('setMsg').innerHTML=`<span style="color:var(--bad)">${esc(dbErr(r.error).message)}</span>`;return}SETTINGS=Object.assign({},DEFAULT_SETTINGS,data);bilInit=false;$('bilMonth').innerHTML='';renderBilling();$('setCard').open=true;$('setMsg').innerHTML='<span style="color:var(--good)">บันทึกแล้ว</span>'};
+  $('setSave').onclick=()=>{const d=Object.assign({},SETTINGS);$('setBody').querySelectorAll('[data-set]').forEach(el=>{d[el.dataset.set]=el.type==='number'?+el.value:el.value.trim()});d.count_types=[0,1,2].map(j=>$('setBody').querySelector(`[data-ct="${j}"]`).checked);
+    if(!/^\d{4}-\d{2}$/.test(d.start)||!/^\d{4}-\d{2}$/.test(d.end)){$('setMsg').innerHTML='<span style="color:var(--bad)">เดือนต้องเป็นรูปแบบ 2572-01</span>';return}save(d)};
+  $('setReset').onclick=async()=>{if(await confirmBox('คืนค่าตามสัญญา?','อัตราทั้งหมดจะกลับเป็นค่าตามสัญญาเลขที่ลงวันที่ 21 ก.ย. 2569','คืนค่า'))save(Object.assign({},DEFAULT_SETTINGS))};
+}
+function billingRowsForExport(B){
+  const lines=[['NT เรียกเก็บจาก AWN (ข้อ 5)','','',''],[`ค่าใช้บริการเสา ปริมาณตามสัญญา (ขั้นต่ำ ${fmt(B.minA)} ANT)`,B.mainUnits,B.rA,B.cMain],['ส่วนที่เกิน 88,000 ANT (ข้อ 5.1.1(1))',B.excess,B.rX,B.cExcess],['เสา NT นอกเหนือ 11,946 ต้น (ข้อ 5.1.1(2))',B.antExtra,B.rN,B.cExtra],['ระหว่างจัดหาทดแทน (ข้อ 5.1.2)',B.antRepl,B.rR,B.cRepl],['รวม (ไม่รวม VAT)','','',B.towerTotal],[`VAT ${(B.vat*100).toFixed(0)}%`,'','',B.towerTotal*B.vat],['รวมทั้งสิ้น','','',B.towerTotal*(1+B.vat)],
+    ['NT ชำระให้ AWN (ข้อ 8)','','',''],['ค่าบริการบำรุงรักษา (ข้อ 8.1(1))',B.towersOM,B.rOM,B.om],['ค่าบริการให้ใช้พื้นที่ (ข้อ 8.1(2))',B.sitesSpace,B.rSP,B.space],['รวม (ไม่รวม VAT)','','',B.ntPays],[`VAT ${(B.vat*100).toFixed(0)}%`,'','',B.ntPays*B.vat],['รวมทั้งสิ้น','','',B.ntPays*(1+B.vat)],['สุทธิ NT ได้รับ (ไม่รวม VAT)','','',B.net]];
+  return lines;
+}
+async function billingExcel(){
+  const B=calcBilling($('bilMonth').value,{detail:true});const wb=new ExcelJS.Workbook();const ws=wb.addWorksheet('สรุปค่าบริการ');
+  ws.getCell('A1').value=`ค่าบริการตามสัญญาเสาโทรคมนาคม NT–AWN เดือน ${mLF(B.mk)}`;ws.getCell('A1').font={bold:true,size:14,name:'Tahoma'};
+  ws.getCell('A2').value=`${B.basisLabel} · ปีสัญญาที่ ${B.year} · ANT ใช้งาน ${num2(B.antContract)} · ขั้นต่ำ ${fmt(B.minA)}`;
+  const hr=ws.getRow(4);['รายการ','จำนวน','อัตรา (บาท)','จำนวนเงิน (บาท)'].forEach((t,j)=>hr.getCell(j+1).value=t);styleHeader(hr,24);
+  billingRowsForExport(B).forEach((l,ix)=>{const row=ws.getRow(5+ix);l.forEach((v,j)=>{const c=row.getCell(j+1);c.value=v===''?null:v;if(j>0&&typeof v==='number')c.numFmt=j===1?'#,##0.00':'#,##0.00'});if(!l[1]&&!l[2])row.font={bold:true}});
+  ws.getColumn(1).width=52;[2,3,4].forEach(j=>ws.getColumn(j).width=20);
+  const aCols=[F('sc','SITECODE',r=>r.o.sc),F('nm','ชื่อสถานี',r=>r.o.nm),F('rg','ภาค',r=>r.o.rg),F('eff','วันที่มีผล',r=>r.eff?fmtD(r.eff):'ต้นเดือน'),F('days','จำนวนวัน',r=>r.days,{num:true}),F('dA','± ANT',r=>r.dA,{num:true}),F('dT','± เสา',r=>r.dT,{num:true}),F('om','ค่าบำรุงรักษา',r=>r.omAmt,MONEY),F('sp','ค่าพื้นที่',r=>r.spAmt,MONEY),F('doc','เลขที่หนังสือ',r=>r.notice?.doc_no||'')];
+  xlsTable(wb.addWorksheet('ลดหนี้-เพิ่มหนี้'),`รายการปรับปรุงเดือน ${mLF(B.mk)}`,'คิดตามวันที่มีผล เฉลี่ยรายวัน',aCols,B.adj);
+  const dCols=[F('sc','SITECODE',r=>r.o.sc),F('lid','LOCATION ID',r=>r.o.lid),F('nm','ชื่อสถานี',r=>r.o.nm),F('rg','ภาค',r=>r.o.rg),F('pv','จังหวัด',r=>r.o.pv),F('A','ANT (เฉลี่ยในเดือน)',r=>r.A,{num:true,dec:2,sum:true}),F('T','เสา (เฉลี่ยในเดือน)',r=>r.T,{num:true,dec:2,sum:true}),F('cls','กลุ่มคิดค่าบริการ',r=>({normal:'ตามสัญญา',extra:'เสา NT นอก 11,946',out:'ไม่อยู่ในสัญญา'})[r.cls]),F('repl','สัดส่วนจัดหาทดแทน',r=>r.fr||'',{num:true,dec:2}),F('om','AWN บำรุงรักษา',r=>YN(r.at.om_by_awn)),F('sp','AWN ให้ใช้พื้นที่',r=>YN(r.at.space_by_awn)),F('omA','ค่าบำรุงรักษา',r=>r.omAmt,MONEY)];
+  xlsTable(wb.addWorksheet('รายสถานี'),`ข้อมูลรายสถานี เดือน ${mLF(B.mk)}`,B.basisLabel,dCols,B.detail);
+  return{wb,name:`ค่าบริการเสา NT-AWN ${mL(B.mk)}.xlsx`};
+}
+function billingPdf(){
+  const B=calcBilling($('bilMonth').value);const L=billingRowsForExport(B);
+  let body=`<table><thead><tr><th>รายการ</th><th class="r">จำนวน</th><th class="r">อัตรา (บาท)</th><th class="r">จำนวนเงิน (บาท)</th></tr></thead><tbody>${L.map(l=>{const head=l[1]===''&&l[2]==='';return`<tr${head?' class="sum"':''}><td>${esc(l[0])}</td><td class="r">${typeof l[1]==='number'?num2(l[1]):''}</td><td class="r">${typeof l[2]==='number'?money(l[2]):''}</td><td class="r">${typeof l[3]==='number'?money(l[3]):''}</td></tr>`}).join('')}</tbody></table>`;
+  if(B.adj.length){const aCols=[F('sc','SITECODE',r=>r.o.sc),F('nm','ชื่อสถานี',r=>r.o.nm),F('eff','วันที่มีผล',r=>r.eff?fmtD(r.eff):'ต้นเดือน'),F('days','วัน',r=>r.days,{num:true}),F('dA','± ANT',r=>r.dA,{num:true}),F('dT','± เสา',r=>r.dT,{num:true}),F('om','ค่าบำรุงรักษา',r=>r.omAmt,MONEY),F('sp','ค่าพื้นที่',r=>r.spAmt,MONEY),F('doc','หนังสือ',r=>r.notice?.doc_no||'')];body+=`<h2>รายการปรับปรุงในเดือน (ลดหนี้ / เพิ่มหนี้)</h2>`+htmlTable(aCols,B.adj)}
+  printHTML(`ค่าบริการตามสัญญาเสาโทรคมนาคม NT–AWN เดือน ${mLF(B.mk)}`,`${B.basisLabel} · ปีสัญญาที่ ${B.year} · ANT ใช้งาน ${num2(B.antContract)} (ขั้นต่ำ ${fmt(B.minA)}) · อัตราค่าใช้บริการเสา ${money(B.rA)} บาท/ANT/เดือน`,body,'portrait');
+}
+
 start();
 
 </script>
