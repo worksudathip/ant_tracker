@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>ระบบติดตาม ANT บนเสา Tower (AWN)</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%232a78d6'/%3E%3Cpath d='M16 6l-6 20h3l1-4h4l1 4h3L16 6zm-1.3 13L16 13l1.3 6h-2.6z' fill='white'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="gate" class="gate">
+  <div class="gate-card">
+    <div class="gate-brand"><b>ระบบติดตาม Antenna บนเสา Tower — AWN</b><span>เสาโทรคมนาคม บมจ.โทรคมนาคมแห่งชาติ</span></div>
+    <div id="gateBody"><div class="loading" style="padding:30px">กำลังตรวจสอบการเข้าสู่ระบบ…</div></div>
+  </div>
+</div>
+<div id="app" class="hide">
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand"><b>ระบบติดตาม Antenna บนเสา Tower — AWN</b><span>เสาโทรคมนาคม บมจ.โทรคมนาคมแห่งชาติ</span></div>
+    <span class="pill work" id="workPill">เดือนที่บันทึก: –</span>
+    <span class="pill"><span class="dot" id="syncDot"></span><span id="syncTxt">กำลังเชื่อมต่อ…</span></span>
+    <span class="user-box"><span class="pill" id="userPill"></span><button class="btn sm" id="logoutBtn">ออกจากระบบ</button></span>
+  </div>
+  <nav class="tabs" id="tabs">
+    <a href="#overview" data-v="overview">ภาพรวม</a>
+    <a href="#sites" data-v="sites">ค้นหาสถานี</a>
+    <a href="#record" data-v="record">บันทึกรื้อถอน/ติดตั้ง<span class="badge info" id="recBadge">0</span></a>
+    <a href="#reports" data-v="reports">ออกรายงาน Excel</a>
+    <a href="#checks" data-v="checks">ตรวจสอบข้อมูล<span class="badge warn" id="chkBadge">0</span></a>
+    <a href="#admin" data-v="admin" class="admin-only hide">ผู้ดูแลระบบ<span class="badge warn hide" id="pendBadge">0</span></a>
+  </nav>
+</header>
+<main>
+<div id="boot" class="loading">กำลังโหลดข้อมูล 10,909 รายการ…</div>
+
+<!-- OVERVIEW -->
+<section class="view" id="v-overview">
+  <h2>ภาพรวมจำนวน Antenna</h2>
+  <p class="sub" id="ovSub"></p>
+  <div class="grid kpis" id="kpis"></div>
+  <div class="grid two" style="margin-top:14px">
+    <div class="card"><h3>Total ANT รายเดือน</h3><div class="chart" id="chTotal"></div></div>
+    <div class="card"><h3>รื้อถอน / ติดตั้งเพิ่ม รายเดือน (ANT)</h3>
+      <div class="legend"><span><i style="background:var(--s2)"></i>รื้อถอน</span><span><i style="background:var(--s3)"></i>ติดตั้งเพิ่ม</span></div>
+      <div class="chart" id="chFlow"></div></div>
+  </div>
+  <div class="sec-h"><h3>สรุปจำนวน ANT แยกภาค</h3><span class="muted" style="font-size:12px">เทียบได้กับชีต “สรุป” ในไฟล์รายเดือน</span></div>
+  <div class="tbl-wrap"><table id="tblRegion"></table></div>
+  <div class="sec-h"><h3>สรุปรายปี (จากไฟล์ TOWER AWN 2026)</h3></div>
+  <div class="tbl-wrap"><table id="tblYear"></table></div>
+</section>
+
+<!-- SITES -->
+<section class="view" id="v-sites">
+  <h2>ค้นหาสถานี</h2>
+  <p class="sub">ค้นด้วย SITECODE, ชื่อสถานี, LOCATION ID หรือจังหวัด · คลิกแถวเพื่อดูประวัติรายเดือน</p>
+  <div class="toolbar">
+    <input type="search" id="fQ" placeholder="ค้นหา… เช่น BLP1M, บางลำภู, 101027" style="flex:1;min-width:220px">
+    <select id="fRg"><option value="">ทุกภาค</option></select>
+    <select id="fPv"><option value="">ทุกจังหวัด</option></select>
+    <select id="fTt"><option value="">ทุกประเภทเสา</option></select>
+    <select id="fSt">
+      <option value="">ทุกสถานะ</option><option value="active">มี ANT อยู่</option><option value="zero">ANT = 0</option>
+      <option value="removed">เสารื้อถอนแล้ว</option><option value="changed">มีรายการเดือนนี้</option><option value="space">มี Available Space</option>
+    </select>
+  </div>
+  <div class="tbl-wrap tall"><table id="tblSites"></table></div>
+  <div class="pager" id="pager"></div>
+</section>
+
+<!-- RECORD -->
+<section class="view" id="v-record">
+  <h2>บันทึกรื้อถอน / ติดตั้งเพิ่ม — <span id="recMonth"></span></h2>
+  <p class="sub">บันทึกทีละสถานี หรือวางข้อมูลจาก Excel ทีเดียวหลายรายการ ระบบคำนวณยอดคงเหลือและสรุปให้อัตโนมัติ</p>
+  <div id="modeNote"></div><div id="closedNote"></div>
+  <div class="card drop wr" id="impCard" style="margin-bottom:16px">
+    <div class="row" style="justify-content:space-between;align-items:flex-start">
+      <div><h3 style="margin-bottom:4px">นำเข้าไฟล์ข้อมูลเดือนใหม่ (.xlsx)</h3>
+        <p class="muted" style="margin:0;font-size:12.5px">ใช้ไฟล์รูปแบบเดิม เช่น “10. Tower ที่ใช้บริการติดตั้ง ANT (ต.ค. 69).xlsx” — ระบบอ่านเดือนจากหัวคอลัมน์ “Total ANT (…)”, เทียบกับยอดเดือนก่อนในระบบ แล้วสร้างรายการรื้อถอน/ติดตั้งให้ทุกสถานี (รวมสถานีใหม่) พร้อมตรวจยอดก่อนบันทึก</p></div>
+      <label class="btn pri" style="flex-shrink:0">เลือกไฟล์…<input type="file" id="impFile" accept=".xlsx,.xls,.csv" class="hide"></label>
+    </div>
+    <div id="impOut"></div>
+  </div>
+  <div class="rec-layout">
+    <div>
+      <div class="card wr">
+        <h3>บันทึกทีละสถานี</h3>
+        <div class="field ac"><label>สถานี (SITECODE / ชื่อ / LOCATION ID)</label>
+          <input type="text" id="acIn" placeholder="พิมพ์อย่างน้อย 2 ตัวอักษร" autocomplete="off">
+          <div class="ac-list" id="acList"></div></div>
+        <div id="selSite"></div>
+        <div id="formBody" class="hide">
+          <div class="qgrid">
+            <div class="h">ประเภท</div><div class="h r">ปัจจุบัน</div><div class="h">รื้อถอน</div><div class="h">ติดตั้งเพิ่ม</div><div class="h r">คงเหลือ</div>
+            <div>ANT AWN</div><div class="num r" id="p0"></div><input type="number" min="0" id="rm0"><input type="number" min="0" id="in0"><div class="num r" id="n0"></div>
+            <div>Microwave</div><div class="num r" id="p1"></div><input type="number" min="0" id="rm1"><input type="number" min="0" id="in1"><div class="num r" id="n1"></div>
+            <div>ANT DTAC</div><div class="num r" id="p2"></div><input type="number" min="0" id="rm2"><input type="number" min="0" id="in2"><div class="num r" id="n2"></div>
+          </div>
+          <div class="field"><label>หมายเหตุ</label><input type="text" id="note" placeholder="เช่น รื้อถอน ANT AWN">
+            <div class="chips" id="noteChips"></div></div>
+          <label class="row" style="margin-bottom:12px;font-size:13px"><input type="checkbox" id="towerRm"> เสารื้อถอนแล้ว (ปรับ “จำนวน TOWER เช่า ณ ปัจจุบัน” เป็น 0)</label>
+          <div id="formMsg"></div>
+          <div class="row"><button class="btn pri" id="saveBtn">บันทึก</button><button class="btn" id="clearBtn">ล้าง</button></div>
+        </div>
+      </div>
+      <div class="card wr" style="margin-top:14px">
+        <h3>วางจาก Excel (หลายรายการ)</h3>
+        <p class="muted" style="margin:0 0 8px;font-size:12.5px">คัดลอกคอลัมน์จาก Excel แล้ววาง ลำดับคอลัมน์: <b>SITECODE · ประเภท (ANT / MW / DTAC) · รื้อถอน · ติดตั้งเพิ่ม · หมายเหตุ</b> — ไม่ใส่ประเภทได้ (ถือเป็น ANT AWN)</p>
+        <textarea id="bulkIn" placeholder="BLP1M	ANT	1	0	รื้อถอน ANT AWN&#10;CHA9M	ANT	0	2	ติดตั้ง ANT AWN&#10;KISIM	DTAC	2	0	รื้อถอน ANT Dtac"></textarea>
+        <div class="row" style="margin-top:8px"><button class="btn" id="bulkCheck">ตรวจสอบ</button><button class="btn pri hide" id="bulkSave">บันทึกรายการที่ถูกต้อง</button></div>
+        <div id="bulkOut" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div>
+      <div class="grid kpis" id="recKpis"></div>
+      <div class="sec-h"><h3>รายการของเดือนนี้</h3><input type="search" id="recQ" placeholder="กรองรายการ…" style="width:200px"></div>
+      <div class="tbl-wrap tall"><table id="tblRec"></table></div>
+    </div>
+  </div>
+</section>
+
+<!-- REPORTS -->
+<section class="view" id="v-reports">
+  <h2>ออกรายงาน Excel</h2>
+  <p class="sub">สร้างไฟล์ในรูปแบบเดียวกับไฟล์ที่ใช้อยู่ — มีสูตร SUBTOTAL / SUMIF พร้อมใช้ ไม่ต้องคัดลอกคอลัมน์เอง</p>
+  <div id="dlNote"></div>
+  <div class="grid rep-grid">
+    <div class="card"><h3>รายงานประจำเดือน</h3>
+      <p>ชีต “สรุป” แยกภาค + หมายเหตุจำนวน Site/ANT ที่รื้อถอนและติดตั้ง และชีต “เสาเช่า (new)” เทียบเดือนก่อน–เดือนนี้ ไฮไลต์แถวที่มีการเปลี่ยนแปลง</p>
+      <div class="row"><select id="repMonth"></select><button class="btn pri" id="repMonthBtn">ดาวน์โหลด .xlsx</button></div></div>
+    <div class="card"><h3>รายงานรายไตรมาส (V.69-x)</h3>
+      <p>เทียบ 3 เดือน พร้อม Available Space (คำนวณจากความจุเสา ณ ก.ค. 69), REMARK full cap, STATUS</p>
+      <div class="row"><select id="q1"></select><select id="q2"></select><select id="q3"></select></div>
+      <div class="row" style="margin-top:8px"><button class="btn pri" id="repQBtn">ดาวน์โหลด .xlsx</button></div></div>
+    <div class="card"><h3>ตารางสรุปรายปี</h3>
+      <p>ตาราง Tower / รื้อถอน / ติดตั้งเพิ่ม / คงเหลือ / DTAC / Total ANT ต่อเนื่องจากชีต “สรุป” ของไฟล์ TOWER AWN 2026</p>
+      <button class="btn pri" id="repYBtn">ดาวน์โหลด .xlsx</button></div>
+    <div class="card"><h3>รายการบันทึกของเดือน</h3>
+      <p>เฉพาะสถานีที่มีรื้อถอน/ติดตั้งในเดือนที่เลือก เหมาะสำหรับแนบบันทึกส่ง AWN หรือ บสฐฐ.</p>
+      <div class="row"><select id="repLogMonth"></select><button class="btn pri" id="repLogBtn">ดาวน์โหลด .xlsx</button></div></div>
+    <div class="card" style="border-color:var(--accent)"><h3>ปิดเดือน</h3>
+      <p id="closeTxt"></p>
+      <div class="row"><button class="btn pri" id="closeBtn">ปิดเดือนนี้</button><button class="btn" id="reopenBtn">เปิดเดือนล่าสุดอีกครั้ง</button></div>
+      <div id="closeMsg"></div></div>
+  </div>
+  <div id="repMsg"></div>
+</section>
+
+<!-- CHECKS -->
+<section class="view" id="v-checks">
+  <h2>ตรวจสอบความถูกต้องของข้อมูล</h2>
+  <p class="sub">ระบบตรวจทุกครั้งที่เปิดหน้า — ช่วยจับจุดที่ตัวเลขไม่สอดคล้องก่อนส่งรายงาน</p>
+  <div id="chkSummary" class="grid kpis"></div>
+  <div id="chkList"></div>
+</section>
+
+<!-- ADMIN -->
+<section class="view" id="v-admin">
+  <h2>ผู้ดูแลระบบ</h2>
+  <p class="sub">อนุมัติผู้ใช้และกำหนดสิทธิ์ · ข้อมูลตั้งต้น · ประวัติการแก้ไข</p>
+  <div class="sec-h"><h3>ผู้ใช้งาน</h3><span class="muted" style="font-size:12px">รออนุมัติ = ยังเห็นข้อมูลไม่ได้ · ผู้ดู = ดู/ดาวน์โหลด · ผู้บันทึก = + บันทึก/นำเข้าไฟล์ · ผู้ดูแล = + ปิดเดือน/จัดการผู้ใช้</span></div>
+  <div id="userMsg"></div>
+  <div class="tbl-wrap"><table id="tblUsers"></table></div>
+  <div class="sec-h"><h3>ข้อมูลตั้งต้น (sites.json)</h3></div>
+  <div class="card"><p class="muted" style="margin:0 0 10px;font-size:13px" id="baseInfo"></p>
+    <label class="btn">อัปโหลดไฟล์ใหม่แทนที่…<input type="file" id="baseFile" accept=".json,application/json" class="hide"></label>
+    <div id="baseMsg"></div></div>
+  <div class="sec-h"><h3>ประวัติการแก้ไขล่าสุด</h3><button class="btn sm" id="auditReload">รีเฟรช</button></div>
+  <div class="tbl-wrap tall"><table id="tblAudit"></table></div>
+</section>
+</main>
+
+</div>
+<div class="modal-bg" id="modalBg"><div class="modal" id="modal"></div></div>
+<div class="modal-bg" id="confirmBg"><div class="modal" style="max-width:460px" id="confirmBox"></div></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
